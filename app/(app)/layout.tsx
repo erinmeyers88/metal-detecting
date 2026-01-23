@@ -7,8 +7,8 @@ type AppLayoutProps = {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <AuthGate>
+    // <AuthGate>
       <AppShell>{children}</AppShell>
-    </AuthGate>
+    // </AuthGate>
   );
 }

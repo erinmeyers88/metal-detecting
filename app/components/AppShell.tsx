@@ -25,9 +25,9 @@ export default function AppShell({ children }: AppShellProps) {
         <AppBar position="fixed" sx={{ zIndex: 1201 }}>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant="h6" noWrap component="div">
-              Clipped drawer
+              Metal Detecting
             </Typography>
-            <AuthButton />
+            {/* <AuthButton /> */}
           </Toolbar>
         </AppBar>
       <SidebarList />

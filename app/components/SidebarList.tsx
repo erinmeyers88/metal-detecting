@@ -26,7 +26,7 @@ export default function SidebarList() {
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
         <List>
-          <NavItem href="/dashboard" label="Dashboard" icon={<DashboardIcon />} />
+          <NavItem href="/" label="Dashboard" icon={<DashboardIcon />} />
           <NavItem href="/map" label="Map" icon={<MapIcon />} />
           <NavItem href="/list" label="List" icon={<ListAltIcon />} />
           <NavItem href="/areas" label="Areas" icon={<PlaceIcon />} />

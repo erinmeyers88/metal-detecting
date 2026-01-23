@@ -2,6 +2,47 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### From Scratch (no Node installed)
+
+1. Install Node.js 20+ (recommended via nvm):
+   ```bash
+   # Install nvm (macOS/Linux)
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+   # Restart your terminal, then:
+   nvm install 20
+   nvm use 20
+   node -v
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create `.env` with your Supabase keys and DB URLs:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   DATABASE_URL=your-direct-postgres-url?sslmode=require
+   DIRECT_URL=your-direct-postgres-url?sslmode=require
+   ```
+
+4. Initialize the database (PostGIS required):
+   - Supabase SQL editor:
+     ```sql
+     create extension if not exists postgis;
+     ```
+   - Run migrations and generate client:
+     ```bash
+     npx prisma migrate dev --name init
+     npx prisma generate
+     ```
+
+5. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+
 First, run the development server:
 
 ```bash

@@ -1,5 +1,5 @@
-import Typography from '@mui/material/Typography';
+import Map from '../../components/Map';
 
 export default function MapPage() {
-  return <Typography>Map</Typography>;
+  return <Map></Map>
 }
