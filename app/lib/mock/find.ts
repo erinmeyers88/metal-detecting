@@ -12,6 +12,7 @@ export type MockFind = {
   foundAt: string;
   geometry: Feature
   area: MockArea;
+  photoUrl: string
 };
 
 faker.seed(42);
@@ -34,6 +35,7 @@ export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
     depthCm: faker.number.int({ min: 2, max: 30 }),
     foundAt,
     area,
+    photoUrl: faker.image.urlPicsumPhotos({blur: 0, width: 4000}),
     geometry: {
       type: 'Feature',
       properties: {

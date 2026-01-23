@@ -1,11 +1,10 @@
 'use client';
 
-import { mockFinds } from '@/app/lib/mock/find';
 import { Map, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 
-export default function MapPage() {
+export default function Map({finds}) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   const featureCollection = {
@@ -25,21 +24,22 @@ export default function MapPage() {
     },
   };
 
-  return (
-    <Map
-      reuseMaps
-      mapboxAccessToken={mapboxToken}
-      initialViewState={{
-        longitude: -122.4,
-        latitude: 37.8,
-        zoom: 14,
-      }}
-      style={{ width: '100%', height: 500 }}
-      mapStyle="mapbox://styles/mapbox/streets-v9"
-    >
-      <Source id="finds" type="geojson" data={featureCollection}>
-        <Layer {...findsLayer} />
-      </Source>
-    </Map>
-  );
+//   return (
+//     <Map
+//       reuseMaps
+//       mapboxAccessToken={mapboxToken}
+//       initialViewState={{
+//         longitude: -122.4,
+//         latitude: 37.8,
+//         zoom: 14,
+//       }}
+//       style={{ width: '100%', height: 500 }}
+//       mapStyle="mapbox://styles/mapbox/streets-v9"
+//     >
+//       <Source id="finds" type="geojson" data={featureCollection}>
+//         <Layer {...findsLayer} />
+//       </Source>
+//     </Map>
+//   );
+  return "Map";
 }
