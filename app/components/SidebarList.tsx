@@ -7,6 +7,7 @@ import MapIcon from '@mui/icons-material/Map';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import PlaceIcon from '@mui/icons-material/Place';
 import NavItem from './NavItem';
 import ThemeToggleItem from './ThemeToggleItem';
 
@@ -28,6 +29,7 @@ export default function SidebarList() {
           <NavItem href="/dashboard" label="Dashboard" icon={<DashboardIcon />} />
           <NavItem href="/map" label="Map" icon={<MapIcon />} />
           <NavItem href="/list" label="List" icon={<ListAltIcon />} />
+          <NavItem href="/areas" label="Areas" icon={<PlaceIcon />} />
         </List>
         <Divider />
         <List>

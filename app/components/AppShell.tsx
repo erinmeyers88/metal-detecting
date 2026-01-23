@@ -5,6 +5,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import MainContent from './MainContent';
 import SidebarList from './SidebarList';
+import AuthButton from './AuthButton';
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -21,13 +22,14 @@ export default function AppShell({ children }: AppShellProps) {
       }}
     >
       <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: 1201 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            Clipped drawer
-          </Typography>
-        </Toolbar>
-      </AppBar>
+        <AppBar position="fixed" sx={{ zIndex: 1201 }}>
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h6" noWrap component="div">
+              Clipped drawer
+            </Typography>
+            <AuthButton />
+          </Toolbar>
+        </AppBar>
       <SidebarList />
       <MainContent>{children}</MainContent>
     </Box>

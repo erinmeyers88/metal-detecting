@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AppShell from "./components/AppShell";
 import ThemeRegistry from "./ThemeRegistry";
 import ThemeProviderClient from "./components/ThemeProviderClient";
 
@@ -32,7 +31,7 @@ export default function RootLayout({
       >
         <ThemeRegistry>
           <ThemeProviderClient>
-            <AppShell>{children}</AppShell>
+            {children}
           </ThemeProviderClient>
         </ThemeRegistry>
       </body>
