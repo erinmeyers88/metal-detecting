@@ -29,7 +29,7 @@ export default function SidebarList() {
           <NavItem href="/" label="Dashboard" icon={<DashboardIcon />} />
           <NavItem href="/map" label="Map" icon={<MapIcon />} />
           <NavItem href="/list" label="List" icon={<ListAltIcon />} />
-          <NavItem href="/areas" label="Areas" icon={<PlaceIcon />} />
+          <NavItem href="/sites" label="Sites" icon={<PlaceIcon />} />
         </List>
         <Divider />
         <List>

@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
-export const areaIdSchema = z.string().uuid();
+export const siteIdSchema = z.string().uuid();
 export const userIdSchema = z.string().uuid();
 
-export const areaCreateSchema = z.object({
+export const siteCreateSchema = z.object({
   userId: userIdSchema,
   name: z.string().min(1),
   notes: z.string().optional(),
   geojson: z.unknown(),
 });
 
-export const areaUpdateSchema = z
+export const siteUpdateSchema = z
   .object({
     name: z.string().min(1).optional(),
     notes: z.string().optional(),

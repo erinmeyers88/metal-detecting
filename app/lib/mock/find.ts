@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { MockArea, mockAreas } from "./area";
+import { MockSite, mockSites } from "./site";
 import type { Feature, Point } from "geojson";
 
 export type MockFind = {
@@ -11,7 +11,7 @@ export type MockFind = {
   depth: number;
   foundTimestamp: string;
   location: Feature<Point>;
-  area: MockArea;
+  site: MockSite;
   photoUrl?: string;
   size: number;
   weight?: number;
@@ -19,7 +19,7 @@ export type MockFind = {
   condition: string;
 };
 
-faker.seed(42);
+faker.seed(42); //Ensures that all mock data remains the same with each generation
 
 const materials = [
   { name: "Iron", color: "#2f3339", colorAlt: "#5f6b75" },
@@ -41,7 +41,7 @@ const conditions = ["New", "Little Wear", "Worn", "Very Worn", "Bad"];
 
 export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
   const foundTimestamp = faker.date.recent({ days: 60 }).toDateString();
-  const area = faker.helpers.arrayElement(mockAreas);
+  const site = faker.helpers.arrayElement(mockSites);
   const latitude = faker.location.latitude({
     min: 42.0,
     max: 46.3,
@@ -60,7 +60,7 @@ export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
     materials: faker.helpers.arrayElements(materials, { min: 1, max: 3 }),
     depth: faker.number.int({ min: 0.5, max: 10 }),
     foundTimestamp,
-    area,
+    site,
     photoUrl: faker.image.urlPicsumPhotos({ blur: 0, width: 4000 }),
     location: {
       type: "Feature",

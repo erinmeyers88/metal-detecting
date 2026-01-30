@@ -19,7 +19,7 @@ export default function LoginPage() {
     <Stack spacing={2} alignItems="flex-start">
       <Typography variant="h5">Sign in</Typography>
       <Typography variant="body2" color="text.secondary">
-        Sign in to access your areas, finds, and detectors.
+        Sign in to access your sites, finds, and detectors.
       </Typography>
       <Button variant="contained" onClick={handleSignIn}>
         Sign in with Google

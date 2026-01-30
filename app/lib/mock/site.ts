@@ -1,27 +1,27 @@
 import { faker } from "@faker-js/faker";
 import type { Feature, Polygon } from "geojson";
 
-export type MockArea = {
+export type MockSite = {
   id: string;
   name: string;
   notes: string;
   location: Feature<Polygon>;
 };
 
-const areaNames = [
+const siteNames = [
   "Old Fairgrounds",
   "Riverbend Park",
   "East Beach",
   "Pioneer Trail",
 ];
-const areaNotes = [
+const siteNotes = [
   "Public access",
   "Low tide best",
   "High traffic",
   "Historic site",
 ];
 
-export const mockAreas: MockArea[] = Array.from({ length: 4 }, () => {
+export const mockSites: MockSite[] = Array.from({ length: 4 }, () => {
   const latitude = faker.location.latitude({
     min: 42.0,
     max: 46.3,
@@ -32,8 +32,8 @@ export const mockAreas: MockArea[] = Array.from({ length: 4 }, () => {
     max: -116.5,
     precision: 6,
   });
-  const deltaLat = faker.number.float({ min: 0.005, max: 0.03, });
-  const deltaLng = faker.number.float({ min: 0.005, max: 0.03, });
+  const deltaLat = faker.number.float({ min: 0.005, max: 0.03 });
+  const deltaLng = faker.number.float({ min: 0.005, max: 0.03 });
 
   const lat = Number(latitude);
   const lng = Number(longitude);
@@ -47,8 +47,8 @@ export const mockAreas: MockArea[] = Array.from({ length: 4 }, () => {
 
   return {
     id: faker.string.uuid(),
-    name: faker.helpers.arrayElement(areaNames),
-    notes: faker.helpers.arrayElement(areaNotes),
+    name: faker.helpers.arrayElement(siteNames),
+    notes: faker.helpers.arrayElement(siteNotes),
     location: {
       type: "Feature",
       properties: {},

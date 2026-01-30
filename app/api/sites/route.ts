@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { randomUUID } from 'crypto';
-import { areaCreateSchema, userIdSchema } from '@/app/lib/validation/area';
+import { siteCreateSchema, userIdSchema } from '@/app/lib/validation/site';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
           ST_AsGeoJSON("geom") AS "geojson",
           "createdAt",
           "updatedAt"
-        FROM "Area"
+        FROM "Site"
         WHERE "userId" = ${userId}
         ORDER BY "createdAt" DESC
       `
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
           ST_AsGeoJSON("geom") AS "geojson",
           "createdAt",
           "updatedAt"
-        FROM "Area"
+        FROM "Site"
         ORDER BY "createdAt" DESC
       `;
 
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = (await request.json()) as unknown;
-  const parsed = areaCreateSchema.safeParse(body);
+  const parsed = siteCreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Invalid request body.', details: parsed.error.flatten() },
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   const geojson = JSON.stringify(parsed.data.geojson);
 
   await prisma.$executeRaw`
-    INSERT INTO "Area" ("id", "userId", "name", "notes", "geom", "createdAt", "updatedAt")
+    INSERT INTO "Site" ("id", "userId", "name", "notes", "geom", "createdAt", "updatedAt")
     VALUES (
       ${id},
       ${parsed.data.userId},
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     )
   `;
 
-  const created = await prisma.area.findUnique({
+  const created = await prisma.site.findUnique({
     where: { id },
   });
 

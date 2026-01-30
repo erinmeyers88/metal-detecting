@@ -38,7 +38,7 @@ const latitude = find.location.geometry.coordinates[1];
 const longitude = find.location.geometry.coordinates[0]
 
   const dateTimeString = `${find.foundTimestamp}`
-const locationDepthString = `${find.area.name} at ${find.depth} in`
+const locationDepthString = `${find.site.name} at ${find.depth} in`
 
           const TypeIcon = typeIconMap[find.type] ?? AutoAwesomeIcon;
 

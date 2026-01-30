@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
 
 export default function ListPage() {
-  return <Typography>Areas</Typography>;
+  return <Typography>Sites</Typography>;
 }

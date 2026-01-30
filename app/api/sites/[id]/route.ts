@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
-import { areaIdSchema, areaUpdateSchema } from '@/app/lib/validation/area';
+import { siteIdSchema, siteUpdateSchema } from '@/app/lib/validation/site';
 
 type Params = {
   params: {
@@ -9,17 +9,17 @@ type Params = {
 };
 
 export async function GET(_request: Request, { params }: Params) {
-  const idResult = areaIdSchema.safeParse(params.id);
+  const idResult = siteIdSchema.safeParse(params.id);
   if (!idResult.success) {
-    return NextResponse.json({ error: 'Invalid area id.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid site id.' }, { status: 400 });
   }
 
-  const area = await prisma.area.findUnique({
+  const site = await prisma.site.findUnique({
     where: { id: idResult.data },
   });
 
-  if (!area) {
-    return NextResponse.json({ error: 'Area not found.' }, { status: 404 });
+  if (!site) {
+    return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
   }
 
   const rows = await prisma.$queryRaw<
@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: Params) {
     }>
   >`
     SELECT ST_AsGeoJSON("geom") AS "geojson"
-    FROM "Area"
+    FROM "Site"
     WHERE "id" = ${idResult.data}
     LIMIT 1
   `;
@@ -37,20 +37,20 @@ export async function GET(_request: Request, { params }: Params) {
 
   return NextResponse.json({
     data: {
-      ...area,
+      ...site,
       geojson,
     },
   });
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const idResult = areaIdSchema.safeParse(params.id);
+  const idResult = siteIdSchema.safeParse(params.id);
   if (!idResult.success) {
-    return NextResponse.json({ error: 'Invalid area id.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid site id.' }, { status: 400 });
   }
 
   const body = (await request.json()) as unknown;
-  const parsed = areaUpdateSchema.safeParse(body);
+  const parsed = siteUpdateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Invalid request body.', details: parsed.error.flatten() },
@@ -58,18 +58,18 @@ export async function PATCH(request: Request, { params }: Params) {
     );
   }
 
-  const existing = await prisma.area.findUnique({
+  const existing = await prisma.site.findUnique({
     where: { id: idResult.data },
   });
 
   if (!existing) {
-    return NextResponse.json({ error: 'Area not found.' }, { status: 404 });
+    return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
   }
 
   if (parsed.data.geojson) {
     const geojson = JSON.stringify(parsed.data.geojson);
     await prisma.$executeRaw`
-      UPDATE "Area"
+      UPDATE "Site"
       SET
         "geom" = ST_SetSRID(ST_GeomFromGeoJSON(${geojson}), 4326),
         "updatedAt" = now()
@@ -77,7 +77,7 @@ export async function PATCH(request: Request, { params }: Params) {
     `;
   }
 
-  const updated = await prisma.area.update({
+  const updated = await prisma.site.update({
     where: { id: idResult.data },
     data: {
       name: parsed.data.name ?? existing.name,
@@ -89,20 +89,20 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const idResult = areaIdSchema.safeParse(params.id);
+  const idResult = siteIdSchema.safeParse(params.id);
   if (!idResult.success) {
-    return NextResponse.json({ error: 'Invalid area id.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid site id.' }, { status: 400 });
   }
 
-  const existing = await prisma.area.findUnique({
+  const existing = await prisma.site.findUnique({
     where: { id: idResult.data },
   });
 
   if (!existing) {
-    return NextResponse.json({ error: 'Area not found.' }, { status: 404 });
+    return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
   }
 
-  await prisma.area.delete({
+  await prisma.site.delete({
     where: { id: idResult.data },
   });
 

@@ -21,7 +21,7 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   detectors Detector[]
-  areas     Area[]
+  sites     Site[]
   finds     Find[]
 }
 
@@ -40,7 +40,7 @@ model Detector {
   @@index([userId])
 }
 
-model Area {
+model Site {
   id        String                  @id @default(uuid()) @db.Uuid
   userId    String                  @db.Uuid
   name      String
@@ -58,7 +58,7 @@ model Find {
   id         String                  @id @default(uuid()) @db.Uuid
   userId     String                  @db.Uuid
   detectorId String?                 @db.Uuid
-  areaId     String?                 @db.Uuid
+  siteId     String?                 @db.Uuid
   title      String
   notes      String?
   geom       Unsupported("geometry")
@@ -67,9 +67,9 @@ model Find {
   updatedAt  DateTime                @updatedAt
   user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   detector   Detector?               @relation(fields: [detectorId], references: [id], onDelete: SetNull)
-  area       Area?                   @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  site       Site?                   @relation(fields: [siteId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([detectorId])
-  @@index([areaId])
+  @@index([siteId])
 }
