@@ -4,12 +4,12 @@ import { Map, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 
-export default function Map({finds}) {
+export default function MainMap({finds}) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   const featureCollection = {
     type: 'FeatureCollection',
-    features: mockFinds.map((find) => find.geometry),
+    features: finds.map((find) => find.geometry),
   } as const;
 
   const findsLayer = {

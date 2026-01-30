@@ -1,19 +1,61 @@
-import { faker } from '@faker-js/faker';
-import type { Feature } from 'geojson';
-
+import { faker } from "@faker-js/faker";
+import type { Feature, Polygon } from "geojson";
 
 export type MockArea = {
   id: string;
   name: string;
   notes: string;
-  geometry: Feature
+  location: Feature<Polygon>;
 };
 
-const areaNames = ['Old Fairgrounds', 'Riverbend Park', 'East Beach', 'Pioneer Trail'];
-const areaNotes = ['Public access', 'Low tide best', 'High traffic', 'Historic site'];
+const areaNames = [
+  "Old Fairgrounds",
+  "Riverbend Park",
+  "East Beach",
+  "Pioneer Trail",
+];
+const areaNotes = [
+  "Public access",
+  "Low tide best",
+  "High traffic",
+  "Historic site",
+];
 
-export const mockAreas: MockArea[] = Array.from({ length: 4 }, () => ({
-  id: faker.string.uuid(),
-  name: faker.helpers.arrayElement(areaNames),
-  notes: faker.helpers.arrayElement(areaNotes),
-}));
+export const mockAreas: MockArea[] = Array.from({ length: 4 }, () => {
+  const latitude = faker.location.latitude({
+    min: 42.0,
+    max: 46.3,
+    precision: 6,
+  });
+  const longitude = faker.location.longitude({
+    min: -124.6,
+    max: -116.5,
+    precision: 6,
+  });
+  const deltaLat = faker.number.float({ min: 0.005, max: 0.03, });
+  const deltaLng = faker.number.float({ min: 0.005, max: 0.03, });
+
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  const ring: [number, number][] = [
+    [lng - deltaLng, lat - deltaLat],
+    [lng + deltaLng, lat - deltaLat],
+    [lng + deltaLng, lat + deltaLat],
+    [lng - deltaLng, lat + deltaLat],
+    [lng - deltaLng, lat - deltaLat],
+  ];
+
+  return {
+    id: faker.string.uuid(),
+    name: faker.helpers.arrayElement(areaNames),
+    notes: faker.helpers.arrayElement(areaNotes),
+    location: {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [ring],
+      },
+    },
+  };
+});

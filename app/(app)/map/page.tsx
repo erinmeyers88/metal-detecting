@@ -3,5 +3,5 @@ import { mockFinds } from '@/app/lib/mock/find';
 
 export default function MapPage() {
 
-  return <Map finds={finds}></Map>
+  return <Map finds={mockFinds}></Map>
 }
