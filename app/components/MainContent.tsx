@@ -7,7 +7,14 @@ type MainContentProps = {
 
 export default function MainContent({ children }: MainContentProps) {
   return (
-    <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+    <Box
+      component="main"
+      sx={{
+        flexGrow: 1,
+        p: 3,
+        pb: { xs: 10, sm: 11 },
+      }}
+    >
       <Toolbar />
       {children}
     </Box>

@@ -8,12 +8,21 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useThemeMode } from './ThemeProviderClient';
 
-export default function ThemeToggleItem() {
+type ThemeToggleItemProps = {
+  onNavigate?: () => void;
+};
+
+export default function ThemeToggleItem({ onNavigate }: ThemeToggleItemProps) {
   const { mode, toggleMode } = useThemeMode();
+
+  const handleClick = () => {
+    toggleMode();
+    onNavigate?.();
+  };
 
   return (
     <ListItem disablePadding>
-      <ListItemButton onClick={toggleMode}>
+      <ListItemButton onClick={handleClick}>
         <ListItemIcon>
           {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
         </ListItemIcon>

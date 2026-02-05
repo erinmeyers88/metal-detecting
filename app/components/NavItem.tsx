@@ -10,12 +10,13 @@ type NavItemProps = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  onNavigate?: () => void;
 };
 
-export default function NavItem({ href, label, icon }: NavItemProps) {
+export default function NavItem({ href, label, icon, onNavigate }: NavItemProps) {
   return (
     <ListItem disablePadding>
-      <ListItemButton component={Link} href={href}>
+      <ListItemButton component={Link} href={href} onClick={onNavigate}>
         <ListItemIcon>{icon}</ListItemIcon>
         <ListItemText primary={label} />
       </ListItemButton>

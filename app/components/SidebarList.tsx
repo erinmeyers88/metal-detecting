@@ -1,9 +1,10 @@
+'use client';
+
 import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
+import Drawer, { type DrawerProps } from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
-import MapIcon from '@mui/icons-material/Map';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -11,12 +12,29 @@ import PlaceIcon from '@mui/icons-material/Place';
 import NavItem from './NavItem';
 import ThemeToggleItem from './ThemeToggleItem';
 
-const drawerWidth = 240;
+export const drawerWidth = 240;
 
-export default function SidebarList() {
+type SidebarListProps = {
+  variant?: DrawerProps['variant'];
+  open?: boolean;
+  onClose?: DrawerProps['onClose'];
+  onNavigate?: () => void;
+  keepMounted?: boolean;
+};
+
+export default function SidebarList({
+  variant = 'permanent',
+  open,
+  onClose,
+  onNavigate,
+  keepMounted = false,
+}: SidebarListProps) {
   return (
     <Drawer
-      variant="permanent"
+      variant={variant}
+      open={open}
+      onClose={onClose}
+      ModalProps={keepMounted ? { keepMounted: true } : undefined}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -26,15 +44,34 @@ export default function SidebarList() {
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
         <List>
-          <NavItem href="/" label="Dashboard" icon={<DashboardIcon />} />
-          <NavItem href="/map" label="Map" icon={<MapIcon />} />
-          <NavItem href="/list" label="List" icon={<ListAltIcon />} />
-          <NavItem href="/sites" label="Sites" icon={<PlaceIcon />} />
+          <NavItem
+            href="/"
+            label="Dashboard"
+            icon={<DashboardIcon />}
+            onNavigate={onNavigate}
+          />
+          <NavItem
+            href="/finds"
+            label="Finds"
+            icon={<ListAltIcon />}
+            onNavigate={onNavigate}
+          />
+          <NavItem
+            href="/sites"
+            label="Sites"
+            icon={<PlaceIcon />}
+            onNavigate={onNavigate}
+          />
         </List>
         <Divider />
         <List>
-          <NavItem href="/settings" label="Settings" icon={<SettingsIcon />} />
-          <ThemeToggleItem />
+          <NavItem
+            href="/settings"
+            label="Settings"
+            icon={<SettingsIcon />}
+            onNavigate={onNavigate}
+          />
+          <ThemeToggleItem onNavigate={onNavigate} />
         </List>
       </Box>
     </Drawer>

@@ -25,13 +25,16 @@ const typeIconMap = {
 };
 
 const FindsList = ({finds}: { finds: MockFind[] }) => {
- 
- return (
-    <Box>
+  return (
+    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 3 } }}>
       <Typography variant="h5" sx={{ marginBottom: 2 }}>
         Toolbar Placeholder
       </Typography>
-      <Masonry columns={{ xs: 1, md: 2, lg: 4 }} spacing={2}>
+      <Masonry
+        columns={{ xs: 1, md: 2, lg: 4 }}
+        spacing={2}
+        sx={{ width: '100%', mx: 'auto' }}
+      >
         {finds.map((find) => {
 
 const latitude = find.location.geometry.coordinates[1];
