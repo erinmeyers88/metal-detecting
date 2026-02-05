@@ -20,13 +20,15 @@ export default function FindsViewToggleFab({ mode }: FindsViewToggleFabProps) {
       href={isMap ? '/map' : '/finds'}
       sx={{
         position: 'fixed',
-        right: 16,
+        left: '50%',
+        transform: 'translateX(-50%)',
         bottom: { xs: 88, sm: 96 },
       }}
+      size="small"
       aria-label={isMap ? 'Open map view' : 'Open list view'}
     >
       {isMap ? <MapIcon sx={{ mr: 1 }} /> : <ListAltIcon sx={{ mr: 1 }} />}
-      {isMap ? 'Map view' : 'List view'}
+      {isMap ? 'Map' : 'List'}
     </Fab>
   );
 }

@@ -11,7 +11,7 @@ export default function MainContent({ children }: MainContentProps) {
       component="main"
       sx={{
         flexGrow: 1,
-        p: 3,
+        p: { xs: 1, md: 2 },
         pb: { xs: 10, sm: 11 },
       }}
     >
