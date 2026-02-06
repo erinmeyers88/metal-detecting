@@ -39,19 +39,29 @@ const types = ["Coin", "Relic", "Trash"];
 
 const conditions = ["New", "Little Wear", "Worn", "Very Worn", "Bad"];
 
-export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
+const getSiteBounds = (site: MockSite) => {
+  const ring = site.location.geometry.coordinates[0];
+  const lngs = ring.map((coord) => coord[0]);
+  const lats = ring.map((coord) => coord[1]);
+  return {
+    minLng: Math.min(...lngs),
+    maxLng: Math.max(...lngs),
+    minLat: Math.min(...lats),
+    maxLat: Math.max(...lats),
+  };
+};
+
+const randomPointInSite = (site: MockSite) => {
+  const { minLng, maxLng, minLat, maxLat } = getSiteBounds(site);
+  return [
+    faker.number.float({ min: minLng, max: maxLng, precision: 6 }),
+    faker.number.float({ min: minLat, max: maxLat, precision: 6 }),
+  ] as [number, number];
+};
+
+const buildFind = (site: MockSite): MockFind => {
   const foundTimestamp = faker.date.recent({ days: 60 }).toDateString();
-  const site = faker.helpers.arrayElement(mockSites);
-  const latitude = faker.location.latitude({
-    min: 42.0,
-    max: 46.3,
-    precision: 6,
-  });
-  const longitude = faker.location.longitude({
-    min: -124.6,
-    max: -116.5,
-    precision: 6,
-  });
+  const [lng, lat] = randomPointInSite(site);
   return {
     id: faker.string.uuid(),
     title: faker.commerce.productName(),
@@ -67,7 +77,7 @@ export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [Number(longitude), Number(latitude)],
+        coordinates: [lng, lat],
       },
     },
     size: faker.number.int({ min: 1, max: 10 }),
@@ -75,4 +85,8 @@ export const mockFinds: MockFind[] = Array.from({ length: 12 }, () => {
     yearMade: faker.number.int({ min: 1000, max: 2026 }),
     condition: faker.helpers.arrayElement(conditions),
   };
-});
+};
+
+export const mockFinds: MockFind[] = mockSites.flatMap((site) =>
+  Array.from({ length: 3 }, () => buildFind(site))
+);

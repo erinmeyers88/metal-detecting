@@ -23,13 +23,13 @@ const siteNotes = [
 
 export const mockSites: MockSite[] = Array.from({ length: 4 }, () => {
   const latitude = faker.location.latitude({
-    min: 42.0,
-    max: 46.3,
+    min: 44.8,
+    max: 46.2,
     precision: 6,
   });
   const longitude = faker.location.longitude({
-    min: -124.6,
-    max: -116.5,
+    min: -123.7,
+    max: -121.7,
     precision: 6,
   });
   const deltaLat = faker.number.float({ min: 0.005, max: 0.03 });

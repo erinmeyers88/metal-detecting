@@ -1,13 +1,5 @@
-
-import { mockFinds } from '@/app/lib/mock/find';
-import FindsList from '@/app/components/FindsList';
-import FindsViewToggleFab from '@/app/components/FindsViewToggleFab';
+import { redirect } from 'next/navigation';
 
 export default function FindsPage() {
-  return (
-    <>
-      <FindsList finds={mockFinds} />
-      <FindsViewToggleFab mode="map" />
-    </>
-  );
+  redirect('/list?tab=finds');
 }

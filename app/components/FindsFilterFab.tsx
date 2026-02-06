@@ -95,12 +95,11 @@ export default function FindsFilterFab({
         onClick={handleOpen}
         sx={{
           position: 'fixed',
-          left: '50%',
-          transform: 'translateX(calc(-50% + 110px))',
-          bottom: { xs: 88, sm: 96 },
+          right: 16,
+          left: 'auto',
+          transform: 'none',
+          bottom: { xs: 96, sm: 96 },
           zIndex: (theme) => theme.zIndex.appBar - 1,
-          gap: 1,
-          pr: appliedCount > 0 ? 1.25 : 1.75,
         }}
         aria-label="Open filters"
       >

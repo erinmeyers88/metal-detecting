@@ -1,5 +1,5 @@
-import Typography from '@mui/material/Typography';
+import { redirect } from 'next/navigation';
 
-export default function ListPage() {
-  return <Typography>Sites</Typography>;
+export default function SitesPage() {
+  redirect('/list?tab=sites');
 }

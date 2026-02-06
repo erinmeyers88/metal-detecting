@@ -51,14 +51,14 @@ export default function SidebarList({
             onNavigate={onNavigate}
           />
           <NavItem
-            href="/finds"
-            label="Finds"
+            href="/list?tab=finds"
+            label="List"
             icon={<ListAltIcon />}
             onNavigate={onNavigate}
           />
           <NavItem
-            href="/sites"
-            label="Sites"
+            href="/map"
+            label="Map"
             icon={<PlaceIcon />}
             onNavigate={onNavigate}
           />

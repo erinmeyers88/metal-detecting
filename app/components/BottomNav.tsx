@@ -1,25 +1,43 @@
 'use client';
 
-import { useMemo } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Paper from '@mui/material/Paper';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import HomeIcon from '@mui/icons-material/Home';
-import PlaceIcon from '@mui/icons-material/Place';
+import MapIcon from '@mui/icons-material/Map';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
-import FindsIcon from './icons/FindsIcon';
 
 const navItems = [
   { label: 'Home', href: '/', icon: <HomeIcon /> },
-  { label: 'Finds', href: '/finds', icon: <FindsIcon /> },
-  { label: 'Sites', href: '/sites', icon: <PlaceIcon /> },
+  { label: 'Map', href: '/map', icon: <MapIcon /> },
+  { label: 'List', href: '/list', icon: <ListAltIcon /> },
   { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [findsHref, setFindsHref] = useState('/list?tab=finds');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (pathname === '/list') {
+      if (tabParam === 'sites') {
+        localStorage.setItem('listTab', 'sites');
+        setFindsHref('/list?tab=sites');
+        return;
+      }
+      localStorage.setItem('listTab', 'finds');
+      setFindsHref('/list?tab=finds');
+      return;
+    }
+    const savedTab = localStorage.getItem('listTab');
+    setFindsHref(savedTab === 'sites' ? '/list?tab=sites' : '/list?tab=finds');
+  }, [pathname, searchParams]);
   const current = useMemo(() => {
     const match = navItems.find((item) => item.href === pathname);
     return match?.href ?? '/';
@@ -55,16 +73,19 @@ export default function BottomNav() {
           },
         }}
       >
-        {navItems.map((item) => (
+        {navItems.map((item) => {
+          const href = item.href === '/list' ? findsHref : item.href;
+          return (
           <BottomNavigationAction
             key={item.href}
             component={Link}
-            href={item.href}
+            href={href}
             label={item.label}
             value={item.href}
             icon={item.icon}
           />
-        ))}
+          );
+        })}
       </BottomNavigation>
     </Paper>
   );
