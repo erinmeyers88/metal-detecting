@@ -24,22 +24,22 @@ export default function MainMap({finds}) {
     },
   };
 
-//   return (
-//     <Map
-//       reuseMaps
-//       mapboxAccessToken={mapboxToken}
-//       initialViewState={{
-//         longitude: -122.4,
-//         latitude: 37.8,
-//         zoom: 14,
-//       }}
-//       style={{ width: '100%', height: 500 }}
-//       mapStyle="mapbox://styles/mapbox/streets-v9"
-//     >
-//       <Source id="finds" type="geojson" data={featureCollection}>
-//         <Layer {...findsLayer} />
-//       </Source>
-//     </Map>
-//   );
+  return (
+    <Map
+      reuseMaps
+      mapboxAccessToken={mapboxToken}
+      initialViewState={{
+        longitude: -122.4,
+        latitude: 37.8,
+        zoom: 14,
+      }}
+      style={{ width: '100%', height: 500 }}
+      mapStyle="mapbox://styles/mapbox/streets-v9"
+    >
+      <Source id="finds" type="geojson" data={featureCollection}/>
+        {/* <Layer {...findsLayer} /> */}
+
+    </Map>
+  );
   return "Map";
 }

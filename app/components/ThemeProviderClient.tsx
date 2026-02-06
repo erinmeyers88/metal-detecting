@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 type ThemeMode = 'light' | 'dark';
@@ -28,8 +28,19 @@ export default function ThemeProviderClient({ children }: ThemeProviderClientPro
   const [mode, setMode] = useState<ThemeMode>('light');
   const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
 
+  useEffect(() => {
+    const storedMode = window.localStorage.getItem('themeMode');
+    if (storedMode === 'light' || storedMode === 'dark') {
+      setMode(storedMode);
+    }
+  }, []);
+
   const toggleMode = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    setMode((prevMode) => {
+      const nextMode = prevMode === 'light' ? 'dark' : 'light';
+      window.localStorage.setItem('themeMode', nextMode);
+      return nextMode;
+    });
   };
 
   return (

@@ -1,5 +1,6 @@
 import AppShell from '../components/AppShell';
 import AuthGate from '../components/AuthGate';
+import FindsFilterProvider from '../components/FindsFilterProvider';
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -8,7 +9,9 @@ type AppLayoutProps = {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     // <AuthGate>
-      <AppShell>{children}</AppShell>
+      <FindsFilterProvider>
+        <AppShell>{children}</AppShell>
+      </FindsFilterProvider>
     // </AuthGate>
   );
 }

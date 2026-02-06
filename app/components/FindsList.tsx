@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Masonry from '@mui/lab/Masonry';
 import type { MockFind } from '../lib/mock/find';
 import {
@@ -23,6 +23,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FindsFilterFab from './FindsFilterFab';
+import { applyFindsFilters } from './findsFilters';
+import { useFindsFilters } from './FindsFilterProvider';
 
 const getChipTextColor = (hex) => {
   const hexValue = hex.replace('#', '');
@@ -42,6 +45,8 @@ const typeIconMap = {
 
 const FindsList = ({finds}: { finds: MockFind[] }) => {
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+  const { filters } = useFindsFilters();
+  const filteredFinds = useMemo(() => applyFindsFilters(finds, filters), [finds, filters]);
 
   const handleToggleDescription = (id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -49,144 +54,127 @@ const FindsList = ({finds}: { finds: MockFind[] }) => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%', mx: 0, px: 0 }}>
-      <Typography variant="h5" sx={{ marginBottom: 2 }}>
-        Toolbar Placeholder
-      </Typography>
+      <FindsFilterFab finds={finds} />
       <Masonry
         columns={{ xs: 1, md: 2, lg: 4 }}
         spacing={2}
         sx={{ width: '100%', mx: 'auto' }}
       >
-        {finds.map((find) => {
-
-const latitude = find.location.geometry.coordinates[1];
-const longitude = find.location.geometry.coordinates[0]
-
-  const dateTimeString = `${find.foundTimestamp}`
-const locationDepthString = `${find.site.name} at ${find.depth} in`
-
+        {filteredFinds.map((find) => {
+          const dateTimeString = `${find.foundTimestamp}`;
+          const locationDepthString = `${find.site.name} • ${find.depth}in`;
           const TypeIcon = typeIconMap[find.type] ?? AutoAwesomeIcon;
           const hasImage = Boolean(find.photoUrl);
 
           return (
-            <Card key={find.id} variant="outlined">
-              <Box sx={{ display: { xs: 'flex', md: 'block' } }}>
-                {hasImage && (
-                  <Box
-                    sx={{
-                      display: { xs: 'block', md: 'none' },
-                      width: 96,
-                      height: 96,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      image={find.photoUrl}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Box>
-                )}
-                <Box sx={{ flex: 1 }}>
-                  <CardHeader
-                    avatar={
-                      !hasImage ? (
-                        <Avatar sx={{ width: 36, height: 36 }}>
-                          <TypeIcon fontSize="small" />
-                        </Avatar>
-                      ) : undefined
-                    }
-                    title={
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                        {find.title}
-                      </Typography>
-                    }
-                    subheader={
-                      <Box sx={{ fontSize: '0.8rem', lineHeight: 1.2 }}>
-                        <Box>{dateTimeString}</Box>
-                        <Box>{locationDepthString}</Box>
-                      </Box>
-                    }
-                  />
-                  <CardContent sx={{ pb: 1 }}>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      flexWrap="wrap"
-                      useFlexGap
-                      sx={{
-                        mt: { xs: 0.5, md: 0 },
-                        ml: { xs: -12, md: 0 },
-                      }}
-                    >
-                      {find.materials.map((m, idx) => (
-                        <Chip
-                          key={idx}
-                          size="small"
-                          label={m.name}
-                          sx={{
-                            backgroundImage: `linear-gradient(135deg, ${m.color} 0%, ${m.colorAlt} 100%)`,
-                            color: getChipTextColor(m.colorAlt),
-                            border: '1px solid rgba(0,0,0,0.2)',
-                            '& .MuiChip-icon': {
-                              color: 'inherit',
-                            },
-                          }}
-                        />
-                      ))}
-                    </Stack>
-                  </CardContent>
-                </Box>
-              </Box>
+            <Card key={find.id} variant="outlined" sx={{ overflow: 'hidden' }}>
               {hasImage && (
                 <CardMedia
                   component="img"
                   image={find.photoUrl}
-                  sx={{
-                    display: { xs: 'none', md: 'block' },
-                    height: 'fit-content',
-                    width: '100%',
-                  }}
+                  sx={{ width: '100%', height: 180, objectFit: 'cover' }}
                 />
               )}
-              <CardContent sx={{ pt: 0.5, pb: 1 }}>
-                <Accordion
-                  disableGutters
-                  elevation={0}
-                  square
-                  expanded={Boolean(expandedIds[find.id])}
-                  onChange={() => handleToggleDescription(find.id)}
+              <CardContent sx={{ pb: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Avatar sx={{ width: 40, height: 40 }}>
+                    <TypeIcon fontSize="small" />
+                  </Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, lineHeight: 1.25 }}
+                      noWrap
+                    >
+                      {find.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {dateTimeString}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {locationDepthString}
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  flexWrap="wrap"
+                  useFlexGap
+                  sx={{ mt: 1.25 }}
+                >
+                  {find.materials.map((m, idx) => (
+                    <Chip
+                      key={idx}
+                      size="small"
+                      label={m.name}
+                      sx={{
+                        backgroundColor: m.color,
+                        color: getChipTextColor(m.color),
+                        border: 'none',
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </CardContent>
+              <Accordion
+                disableGutters
+                elevation={0}
+                square
+                expanded={Boolean(expandedIds[find.id])}
+                onChange={() => handleToggleDescription(find.id)}
+                sx={{
+                  bgcolor: 'transparent',
+                  borderTop: 1,
+                  borderColor: 'divider',
+                  '&:before': { display: 'none' },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls={`find-desc-${find.id}-content`}
+                  id={`find-desc-${find.id}-header`}
                   sx={{
-                    bgcolor: 'transparent',
-                    '&:before': { display: 'none' },
+                    px: 2,
+                    minHeight: 36,
+                    '&.Mui-expanded': { minHeight: 36 },
+                    '& .MuiAccordionSummary-content': { my: 0 },
+                    '& .MuiAccordionSummary-content.Mui-expanded': { my: 0 },
                   }}
                 >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    aria-controls={`find-desc-${find.id}-content`}
-                    id={`find-desc-${find.id}-header`}
+                  <Typography variant="caption" color="text.secondary">
+                    {expandedIds[find.id] ? 'Less' : 'More details'}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                  <Box
+                    component="dl"
                     sx={{
-                      px: 0,
-                      minHeight: 24,
-                      '&.Mui-expanded': { minHeight: 24 },
-                      '& .MuiAccordionSummary-content': { my: 0 },
-                      '& .MuiAccordionSummary-content.Mui-expanded': { my: 0 },
-                      '& .MuiAccordionSummary-expandIconWrapper': {
-                        transition: 'none',
-                      },
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr',
+                      columnGap: 1.5,
+                      rowGap: 0.5,
+                      mb: 1,
+                      typography: 'body2',
+                      color: 'text.secondary',
+                      '& dt': { fontWeight: 600 },
+                      '& dd': { m: 0 },
                     }}
                   >
-                    <Typography variant="caption" color="text.secondary">
-                      {expandedIds[find.id] ? 'Less' : 'More'}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 0, pt: 0, pb: 0.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {find.description}
-                    </Typography>
-                  </AccordionDetails>
-                </Accordion>
-              </CardContent>
+                    <dt>Size</dt>
+                    <dd>{find.size}</dd>
+                    <dt>Weight</dt>
+                    <dd>{find.weight ?? '—'}</dd>
+                    <dt>Year</dt>
+                    <dd>{find.yearMade ?? '—'}</dd>
+                    <dt>Condition</dt>
+                    <dd>{find.condition}</dd>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {find.description}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
             </Card>
           );
         })}

@@ -9,7 +9,7 @@ import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import HomeIcon from '@mui/icons-material/Home';
 import PlaceIcon from '@mui/icons-material/Place';
 import SettingsIcon from '@mui/icons-material/Settings';
-import FindsIcon from '../api/icons/FindsIcon';
+import FindsIcon from './icons/FindsIcon';
 
 const navItems = [
   { label: 'Home', href: '/', icon: <HomeIcon /> },
