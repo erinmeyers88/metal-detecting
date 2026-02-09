@@ -2,8 +2,7 @@
 
 import { useMemo } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { mockFinds } from '@/app/lib/mock/find';
-import { mockSites } from '@/app/lib/mock/site';
+import { useMockData } from '@/app/components/MockDataProvider';
 import FindsList from '@/app/components/FindsList';
 import Map from '@/app/components/Map';
 import FindsFilterFab from '@/app/components/FindsFilterFab';
@@ -20,11 +19,15 @@ export default function SiteFindsPage() {
   const view = searchParams.get('view');
   const isMapView = view === 'map';
   const siteId = params.siteId;
+  const { finds, sites } = useMockData();
   const siteFinds = useMemo(
-    () => mockFinds.filter((find) => find.site.id === siteId),
-    [siteId]
+    () => finds.filter((find) => find.site.id === siteId),
+    [finds, siteId]
   );
-  const site = useMemo(() => mockSites.find((item) => item.id === siteId), [siteId]);
+  const site = useMemo(
+    () => sites.find((item) => item.id === siteId),
+    [sites, siteId]
+  );
   const { filters } = useFindsFilters();
   const filteredFinds = useMemo(
     () => applyFindsFilters(siteFinds, filters),

@@ -6,16 +6,14 @@ import Link from 'next/link';
 import Paper from '@mui/material/Paper';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import HomeIcon from '@mui/icons-material/Home';
-import MapIcon from '@mui/icons-material/Map';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import SettingsIcon from '@mui/icons-material/Settings';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import PersonIcon from '@mui/icons-material/Person';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 const navItems = [
-  { label: 'Home', href: '/', icon: <HomeIcon /> },
-  { label: 'Map', href: '/map', icon: <MapIcon /> },
-  { label: 'List', href: '/list', icon: <ListAltIcon /> },
-  { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
+  { label: 'Go', href: '/', icon: <LocationOnIcon /> },
+  { label: 'Stats', href: '/stats', icon: <AnalyticsIcon /> },
+  { label: 'Profile', href: '/profile', icon: <PersonIcon /> },
 ];
 
 export default function BottomNav() {
@@ -52,14 +50,19 @@ export default function BottomNav() {
         right: 0,
         bottom: 0,
         zIndex: (theme) => theme.zIndex.appBar,
+        bgcolor: 'primary.main',
+        color: 'primary.contrastText',
       }}
     >
       <BottomNavigation
         showLabels
         value={current}
         sx={{
+          bgcolor: 'transparent',
+          color: 'inherit',
           '& .MuiBottomNavigationAction-root': {
             minHeight: 56,
+            color: 'inherit',
           },
           '& .MuiBottomNavigationAction-root .MuiSvgIcon-root': {
             fontSize: 26,
@@ -70,6 +73,9 @@ export default function BottomNav() {
             '&.Mui-selected': {
               fontSize: '0.75rem',
             },
+          },
+          '& .MuiBottomNavigationAction-root.Mui-selected': {
+            color: 'primary.contrastText',
           },
         }}
       >

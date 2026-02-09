@@ -1,20 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Map as MapView, Source, Layer } from 'react-map-gl/mapbox';
+import { useEffect, useMemo, useState } from 'react';
+import { Map as MapView, Marker, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapLayerMouseEvent } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Box from '@mui/material/Box';
 import type { MockFind } from '@/app/lib/mock/find';
 import type { MockSite } from '@/app/lib/mock/site';
 import type { Map as MapboxMap } from 'mapbox-gl';
-import { LngLatBounds } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import coinSvg from './icons/paid_24dp_1F1F1F.svg?raw';
 import relicSvg from './icons/castle_24dp_1F1F1F.svg?raw';
 import trashSvg from './icons/delete_24dp_1F1F1F.svg?raw';
 import FindCard from './FindCard';
 import SiteCard from './SiteCard';
+import { useUserLocation } from './UserLocationProvider';
 
 type MapProps = {
   finds: MockFind[];
@@ -52,6 +52,7 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [selectedFind, setSelectedFind] = useState<MockFind | null>(null);
   const [selectedSite, setSelectedSite] = useState<MockSite | null>(null);
+  const { location } = useUserLocation();
 
   const { minDepth, maxDepth } = useMemo(() => {
     if (!finds.length) {
@@ -65,25 +66,6 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
     });
     return { minDepth: min, maxDepth: max };
   }, [finds]);
-
-  const bounds = useMemo(() => {
-    const nextBounds = new LngLatBounds();
-    let hasPoints = false;
-    finds.forEach((find) => {
-      const [findLng, findLat] = find.location.geometry.coordinates;
-      nextBounds.extend([findLng, findLat]);
-      hasPoints = true;
-    });
-    (sites ?? []).forEach((site) => {
-      site.location.geometry.coordinates.forEach((ring) => {
-        ring.forEach(([lngValue, latValue]) => {
-          nextBounds.extend([lngValue, latValue]);
-          hasPoints = true;
-        });
-      });
-    });
-    return hasPoints ? nextBounds : null;
-  }, [finds, sites]);
 
   const findsById = useMemo(
     () => new Map(finds.map((find) => [String(find.id), find])),
@@ -252,7 +234,24 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
     setSelectedSite(null);
   };
 
-  const [lng, lat] = finds[0]?.location.geometry.coordinates ?? [-122.4, 37.8];
+  const [fallbackLng, fallbackLat] =
+    finds[0]?.location.geometry.coordinates ?? [-111.758, 40.299];
+  const [viewState, setViewState] = useState(() => ({
+    longitude: location?.longitude ?? fallbackLng,
+    latitude: location?.latitude ?? fallbackLat,
+    zoom: 18,
+  }));
+
+  useEffect(() => {
+    if (!location) {
+      return;
+    }
+    setViewState((prev) => ({
+      ...prev,
+      longitude: location.longitude,
+      latitude: location.latitude,
+    }));
+  }, [location]);
 
   const siteFindCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -293,24 +292,25 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
         mapboxAccessToken={mapboxToken}
         attributionControl={false}
         logoPosition="top-left"
-        initialViewState={
-          bounds
-            ? {
-                bounds,
-                fitBoundsOptions: {
-                  padding: 80,
-                  maxZoom: 14,
-                },
-              }
-            : {
-                longitude: lng,
-                latitude: lat,
-                zoom: 12,
-              }
-        }
+        viewState={viewState}
+        onMove={(event) => setViewState(event.viewState)}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v9"
       >
+        {location && (
+          <Marker longitude={location.longitude} latitude={location.latitude} anchor="bottom">
+            <Box
+              sx={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                bgcolor: '#1976d2',
+                border: '2px solid #ffffff',
+                boxShadow: '0 0 0 6px rgba(25, 118, 210, 0.2)',
+              }}
+            />
+          </Marker>
+        )}
         <Source id="sites" type="geojson" data={sitesFeatureCollection}>
           <Layer {...sitesSelectedLayer} />
           <Layer {...sitesFillLayer} />

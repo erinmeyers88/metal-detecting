@@ -7,16 +7,16 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import PlaceIcon from '@mui/icons-material/Place';
-import { mockSites } from '@/app/lib/mock/site';
-import { mockFinds } from '@/app/lib/mock/find';
+import { useMockData } from '@/app/components/MockDataProvider';
 
 export default function SiteDetailPage() {
   const params = useParams<{ siteId: string }>();
   const siteId = params.siteId;
-  const site = mockSites.find((item) => item.id === siteId);
+  const { sites, finds } = useMockData();
+  const site = sites.find((item) => item.id === siteId);
   const totalFinds = useMemo(
-    () => mockFinds.filter((find) => find.site.id === siteId).length,
-    [siteId]
+    () => finds.filter((find) => find.site.id === siteId).length,
+    [finds, siteId]
   );
 
   if (!site) {

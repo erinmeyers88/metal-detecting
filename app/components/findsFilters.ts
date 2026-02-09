@@ -29,7 +29,7 @@ export const defaultFindsFilters: FindsFilterState = {
   orderDir: 'desc',
 };
 
-const parseFoundDate = (foundTimestamp: string) => {
+const parseFoundDate = (foundTimestamp: number) => {
   const parsed = new Date(foundTimestamp);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };

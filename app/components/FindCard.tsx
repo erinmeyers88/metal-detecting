@@ -11,6 +11,7 @@ import {
   Stack,
   CardMedia,
   Avatar,
+  IconButton,
 } from '@mui/material';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -21,6 +22,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EditIcon from '@mui/icons-material/Edit';
+import Link from 'next/link';
 
 const getChipTextColor = (hex: string) => {
   const hexValue = hex.replace('#', '');
@@ -44,7 +47,7 @@ type FindCardProps = {
 
 const FindCard = ({ find }: FindCardProps) => {
   const [expanded, setExpanded] = useState(false);
-  const dateTimeString = `${find.foundTimestamp}`;
+  const dateTimeString = new Date(find.foundTimestamp).toLocaleString();
   const locationDepthString = `${find.site.name} • ${find.depth}in`;
   const TypeIcon = typeIconMap[find.type] ?? AutoAwesomeIcon;
   const hasImage = Boolean(find.photoUrl);
@@ -75,6 +78,14 @@ const FindCard = ({ find }: FindCardProps) => {
               {dateTimeString}
             </Typography>
           </Box>
+          <IconButton
+            component={Link}
+            href={`/finds/${find.id}/edit`}
+            aria-label="Edit find"
+            size="small"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           {locationDepthString}

@@ -5,20 +5,21 @@ import Masonry from '@mui/lab/Masonry';
 import { Box } from '@mui/material';
 import type { MockSite } from '../lib/mock/site';
 import SiteCard from './SiteCard';
-import { mockFinds } from '@/app/lib/mock/find';
+import { useMockData } from './MockDataProvider';
 
 type SitesListProps = {
   sites: MockSite[];
 };
 
 const SitesList = ({ sites }: SitesListProps) => {
+  const { finds } = useMockData();
   const siteFindCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    mockFinds.forEach((find) => {
+    finds.forEach((find) => {
       counts.set(find.site.id, (counts.get(find.site.id) ?? 0) + 1);
     });
     return counts;
-  }, []);
+  }, [finds]);
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%', mx: 0, px: 0 }}>

@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { MockSite, mockSites } from "./site";
+import { MockSite, DEFAULT_CENTER, mockSites } from "./site";
 import type { Feature, Point } from "geojson";
 
 export type MockFind = {
@@ -9,7 +9,7 @@ export type MockFind = {
   description: string;
   materials: { name: string; color: string; colorAlt: string }[];
   depth: number;
-  foundTimestamp: string;
+  foundTimestamp: number;
   location: Feature<Point>;
   site: MockSite;
   photoUrl?: string;
@@ -39,6 +39,7 @@ const types = ["Coin", "Relic", "Trash"];
 
 const conditions = ["New", "Little Wear", "Worn", "Very Worn", "Bad"];
 
+
 const getSiteBounds = (site: MockSite) => {
   const ring = site.location.geometry.coordinates[0];
   const lngs = ring.map((coord) => coord[0]);
@@ -59,8 +60,14 @@ const randomPointInSite = (site: MockSite) => {
   ] as [number, number];
 };
 
+const seedFromCenter = (center: { lat: number; lng: number }) => {
+  const latSeed = Math.round(center.lat * 1000);
+  const lngSeed = Math.round(center.lng * 1000);
+  return Math.abs(latSeed * 100000 + lngSeed + 1337);
+};
+
 const buildFind = (site: MockSite): MockFind => {
-  const foundTimestamp = faker.date.recent({ days: 60 }).toDateString();
+  const foundTimestamp = faker.date.recent({ days: 60 }).getTime();
   const [lng, lat] = randomPointInSite(site);
   return {
     id: faker.string.uuid(),
@@ -87,6 +94,21 @@ const buildFind = (site: MockSite): MockFind => {
   };
 };
 
-export const mockFinds: MockFind[] = mockSites.flatMap((site) =>
-  Array.from({ length: 3 }, () => buildFind(site))
-);
+export const createMockFinds = (
+  sites: MockSite[],
+  center: { lat: number; lng: number } = DEFAULT_CENTER,
+  perSite = 3
+): MockFind[] => {
+  faker.seed(seedFromCenter(center));
+  const base = sites.flatMap((site) =>
+    Array.from({ length: perSite }, () => buildFind(site))
+  );
+  const nearbySite = sites[0];
+  if (!nearbySite) {
+    return base;
+  }
+  const nearFinds = Array.from({ length: 3 }, () => buildFind(nearbySite));
+  return [...nearFinds, ...base];
+};
+
+export const mockFinds: MockFind[] = createMockFinds(mockSites, DEFAULT_CENTER);
