@@ -2,10 +2,11 @@
 
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import MainContent from './MainContent';
 import BottomNav from './BottomNav';
 import LocationRequiredDialog from './LocationRequiredDialog';
+import AppStateBootstrap from './AppStateBootstrap';
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -13,7 +14,8 @@ type AppShellProps = {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const isMapView = pathname === '/map';
+  const searchParams = useSearchParams();
+  const isMapView = pathname === '/map' || (pathname === '/' && searchParams.get('view') === 'map');
 
   return (
     <Box
@@ -26,6 +28,7 @@ export default function AppShell({ children }: AppShellProps) {
       }}
     >
       <CssBaseline />
+      <AppStateBootstrap />
       <MainContent disablePadding={isMapView} showToolbar={false}>
         {children}
       </MainContent>

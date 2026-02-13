@@ -17,9 +17,8 @@ export default function NewSitePage() {
       fullWidth
       maxWidth="md"
       scroll="paper"
-      PaperProps={{ sx: { maxHeight: 'calc(100dvh - 32px)' } }}
     >
-      <DialogContent sx={{ p: 0, height: 'calc(100dvh - 32px)', overflow: 'hidden' }}>
+      <DialogContent sx={{ p: 0 }}>
         <SiteForm
           onCancel={() => router.back()}
           onSubmit={(payload) => {

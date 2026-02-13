@@ -1,9 +1,13 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import {
+  Badge,
   Fab,
-  Popover,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   Select,
@@ -14,7 +18,6 @@ import {
   ToggleButton,
   Stack,
   Button,
-  Chip,
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -34,22 +37,17 @@ export default function FindsFilterFab({
   showOrdering = true,
 }: FindsFilterFabProps) {
   const { filters, setFilters } = useFindsFilters();
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState(filters);
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleOpen = () => {
+    setDraftFilters(filters);
+    setDialogOpen(true);
   };
 
   const handleClose = () => {
-    setAnchorEl(null);
+    setDialogOpen(false);
   };
-
-  useEffect(() => {
-    if (anchorEl) {
-      setDraftFilters(filters);
-    }
-  }, [anchorEl, filters]);
 
   const sites = useMemo(() => {
     const names = new Set<string>();
@@ -90,8 +88,7 @@ export default function FindsFilterFab({
     <>
       <Fab
         color="primary"
-        variant="extended"
-        size="small"
+        size="medium"
         onClick={handleOpen}
         sx={{
           position: 'fixed',
@@ -100,33 +97,41 @@ export default function FindsFilterFab({
           transform: 'none',
           bottom: { xs: 96, sm: 96 },
           zIndex: (theme) => theme.zIndex.appBar - 1,
+          boxShadow: '0 10px 28px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35)',
+          '&:hover': {
+            boxShadow: '0 14px 36px rgba(0, 0, 0, 0.6), 0 5px 14px rgba(0, 0, 0, 0.4)',
+          },
+          '&:active': {
+            boxShadow: '0 8px 20px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35)',
+          },
         }}
         aria-label="Open filters"
       >
-        <FilterListIcon />
-        Filter
-        {appliedCount > 0 && (
-          <Chip
-            size="small"
-            label={appliedCount}
-            sx={{
-              height: 20,
-              fontWeight: 700,
-              bgcolor: 'common.white',
-              color: 'primary.main',
-            }}
-          />
-        )}
+        <Badge
+          badgeContent={appliedCount > 0 ? appliedCount : undefined}
+          color="secondary"
+          overlap="circular"
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          sx={{
+            '& .MuiBadge-badge': {
+              top: -4,
+              right: -4,
+            },
+          }}
+        >
+          <FilterListIcon />
+        </Badge>
       </Fab>
-      <Popover
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
+      <Dialog
+        open={dialogOpen}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { p: 2, width: { xs: 320, sm: 360 } } } }}
+        fullWidth
+        maxWidth="sm"
+        scroll="paper"
       >
-        <Stack spacing={2}>
+        <DialogTitle>Filters</DialogTitle>
+        <DialogContent dividers sx={{ p: 2 }}>
+          <Stack spacing={2}>
           <FormControl fullWidth size="small">
             <InputLabel id="finds-type-label">Type</InputLabel>
             <Select
@@ -271,32 +276,40 @@ export default function FindsFilterFab({
                 <ToggleButton value="asc" aria-label="Ascending">
                   <ArrowUpwardIcon fontSize="small" />
                 </ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-          )}
-          <Divider />
-          <Stack direction="row" justifyContent="flex-end" spacing={1}>
-            <Button
-              size="small"
-              onClick={() =>
-                setDraftFilters((prev) => ({ ...prev, ...defaultFindsFilters }))
-              }
-            >
-              Clear all
-            </Button>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => {
-                setFilters(draftFilters);
-                handleClose();
-              }}
-            >
-              OK
-            </Button>
+                </ToggleButtonGroup>
+              </Stack>
+            )}
           </Stack>
-        </Stack>
-      </Popover>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            px: 2,
+            py: 1.5,
+            borderTop: 1,
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Button
+            size="small"
+            onClick={() =>
+              setDraftFilters((prev) => ({ ...prev, ...defaultFindsFilters }))
+            }
+          >
+            Clear all
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setFilters(draftFilters);
+              handleClose();
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

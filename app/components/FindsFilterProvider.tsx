@@ -1,35 +1,35 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import type { FindsFilterState } from './findsFilters';
-import { defaultFindsFilters } from './findsFilters';
-
-type FindsFilterContextValue = {
-  filters: FindsFilterState;
-  setFilters: React.Dispatch<React.SetStateAction<FindsFilterState>>;
-};
-
-const FindsFilterContext = createContext<FindsFilterContextValue | null>(null);
-
-export function useFindsFilters() {
-  const context = useContext(FindsFilterContext);
-  if (!context) {
-    throw new Error('useFindsFilters must be used within FindsFilterProvider');
-  }
-  return context;
-}
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import {
+  selectFindsFilters,
+  setFindsFilters,
+} from '@/app/store/slices/findsFiltersSlice';
 
 type FindsFilterProviderProps = {
   children: React.ReactNode;
 };
 
-export default function FindsFilterProvider({ children }: FindsFilterProviderProps) {
-  const [filters, setFilters] = useState<FindsFilterState>(defaultFindsFilters);
-  const value = useMemo(() => ({ filters, setFilters }), [filters]);
+export function useFindsFilters() {
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(selectFindsFilters);
 
-  return (
-    <FindsFilterContext.Provider value={value}>
-      {children}
-    </FindsFilterContext.Provider>
+  const setFilters = useCallback(
+    (nextFilters: React.SetStateAction<FindsFilterState>) => {
+      const resolved =
+        typeof nextFilters === 'function'
+          ? (nextFilters as (prev: FindsFilterState) => FindsFilterState)(filters)
+          : nextFilters;
+      dispatch(setFindsFilters(resolved));
+    },
+    [dispatch, filters]
   );
+
+  return { filters, setFilters };
+}
+
+export default function FindsFilterProvider({ children }: FindsFilterProviderProps) {
+  return <>{children}</>;
 }

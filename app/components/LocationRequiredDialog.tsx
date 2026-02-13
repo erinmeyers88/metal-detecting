@@ -12,7 +12,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useUserLocation } from './UserLocationProvider';
 
 export default function LocationRequiredDialog() {
-  const { status, error, requestLocation } = useUserLocation();
+  const { status, requestLocation } = useUserLocation();
   const isOpen = status !== 'granted';
   const isLoading = status === 'loading';
   const isDenied = status === 'denied';

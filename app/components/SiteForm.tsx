@@ -89,13 +89,9 @@ export default function SiteForm({
         width: '100%',
         maxWidth: 720,
         mx: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        maxHeight: '100%',
       }}
     >
-      <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2 }}>
+      <Box sx={{ p: 2 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>
           Add Site
         </Typography>
@@ -131,7 +127,8 @@ export default function SiteForm({
           sx={{
             borderTop: 1,
             borderColor: 'divider',
-            p: 2,
+            px: 2,
+            py: 1,
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 1,

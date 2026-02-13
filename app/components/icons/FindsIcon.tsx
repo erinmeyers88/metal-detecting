@@ -3,7 +3,7 @@ import SvgIcon, { type SvgIconProps } from '@mui/material/SvgIcon';
 
 export default function FindsIcon(props: SvgIconProps) {
   return (
-    <SvgIcon viewBox="0 0 696 784" {...props}>
+    <SvgIcon viewBox="0 0 696 784" sx={{ fontSize: 28, ...(props.sx as object) }} {...props}>
       <g
         transform="translate(0.000000,786.000000) scale(0.100000,-0.100000)"
         fill="currentColor"

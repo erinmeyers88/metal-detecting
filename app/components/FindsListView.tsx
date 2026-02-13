@@ -84,7 +84,7 @@ export default function FindsListView() {
       </Box>
       <Fab
         color="primary"
-        size="medium"
+        size="large"
         aria-label={activeTab === 'sites' ? 'Add site' : 'Add find'}
         component={Link}
         href={activeTab === 'sites' ? '/sites/new' : '/finds/new'}
@@ -94,6 +94,13 @@ export default function FindsListView() {
           transform: 'translateX(-50%)',
           bottom: { xs: 88, sm: 96 },
           zIndex: (theme) => theme.zIndex.appBar + 1,
+          boxShadow: '0 10px 28px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35)',
+          '&:hover': {
+            boxShadow: '0 14px 36px rgba(0, 0, 0, 0.6), 0 5px 14px rgba(0, 0, 0, 0.4)',
+          },
+          '&:active': {
+            boxShadow: '0 8px 20px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35)',
+          },
         }}
       >
         <AddIcon />

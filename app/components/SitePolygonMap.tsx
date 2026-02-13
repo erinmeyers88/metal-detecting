@@ -7,6 +7,8 @@ import type { MapRef } from 'react-map-gl/mapbox';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { DEFAULT_CENTER } from '@/app/lib/mock/site';
+import { useAppSelector } from '@/app/store/hooks';
+import { selectBasemapStyle } from '@/app/store/slices/basemapSlice';
 
 export type Coordinate = [number, number];
 
@@ -159,6 +161,7 @@ export default function SitePolygonMap({ center, error = false, onRingChange }: 
   const drawMapRef = useRef<MapboxMap | null>(null);
   const removeDrawListenersRef = useRef<(() => void) | null>(null);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const basemapStyle = useAppSelector(selectBasemapStyle);
 
   const mapKey = center
     ? `site-map-${center.lat.toFixed(6)}-${center.lng.toFixed(6)}`
@@ -285,7 +288,7 @@ export default function SitePolygonMap({ center, error = false, onRingChange }: 
           attachDrawControls(event.target as MapboxMap);
         }}
         doubleClickZoom={false}
-        mapStyle="mapbox://styles/mapbox/streets-v9"
+        mapStyle={basemapStyle}
         style={{ width: '100%', height: '100%' }}
       >
         {center && (

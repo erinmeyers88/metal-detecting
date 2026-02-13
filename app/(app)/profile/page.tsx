@@ -1,21 +1,8 @@
 'use client';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
-import PaidIcon from '@mui/icons-material/Paid';
-import PlaceIcon from '@mui/icons-material/Place';
-import AddIcon from '@mui/icons-material/Add';
-import Fab from '@mui/material/Fab';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import FindsIcon from '@/app/components/icons/FindsIcon';
-import Link from 'next/link';
 import { useState } from 'react';
 import Paper from '@mui/material/Paper';
 import List from '@mui/material/List';
@@ -25,16 +12,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
 export default function ProfilePage() {
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [tab, setTab] = useState<'you' | 'settings'>('you');
-
-  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchor(event.currentTarget);
-  };
-
-  const handleCloseMenu = () => {
-    setMenuAnchor(null);
-  };
 
   return (
     <Box
@@ -80,41 +58,6 @@ export default function ProfilePage() {
           </Stack>
         )}
       </Box>
-      <Fab
-        color="primary"
-        size="medium"
-        aria-label="Add"
-        onClick={handleOpenMenu}
-        sx={{
-          position: 'fixed',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          bottom: { xs: 88, sm: 96 },
-          zIndex: (theme) => theme.zIndex.appBar + 1,
-        }}
-      >
-        <AddIcon />
-      </Fab>
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <MenuItem component={Link} href="/finds/new" onClick={handleCloseMenu}>
-          <ListItemIcon>
-            <FindsIcon />
-          </ListItemIcon>
-          <ListItemText>Log find</ListItemText>
-        </MenuItem>
-        <MenuItem component={Link} href="/sites/new" onClick={handleCloseMenu}>
-          <ListItemIcon>
-            <PlaceIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Add site</ListItemText>
-        </MenuItem>
-      </Menu>
     </Box>
   );
 }

@@ -1,61 +1,66 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-type UserLocation = {
-  latitude: number;
-  longitude: number;
-  accuracy?: number;
-  timestamp: number;
-};
+import { useCallback } from 'react';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import {
+  locationRequestFailed,
+  locationRequestStarted,
+  locationRequestSucceeded,
+  selectUserLocation,
+  selectUserLocationError,
+  selectUserLocationStatus,
+  type UserLocation,
+  type UserLocationStatus,
+} from '@/app/store/slices/locationSlice';
 
 type UserLocationContextValue = {
   location: UserLocation | null;
-  status: 'idle' | 'loading' | 'granted' | 'denied' | 'error';
+  status: UserLocationStatus;
   error: string | null;
   requestLocation: () => void;
-};
-
-const UserLocationContext = createContext<UserLocationContextValue | null>(null);
-
-export const useUserLocation = () => {
-  const context = useContext(UserLocationContext);
-  if (!context) {
-    throw new Error('useUserLocation must be used within UserLocationProvider');
-  }
-  return context;
 };
 
 type UserLocationProviderProps = {
   children: React.ReactNode;
 };
 
-export default function UserLocationProvider({ children }: UserLocationProviderProps) {
-  const [location, setLocation] = useState<UserLocation | null>(null);
-  const [status, setStatus] = useState<UserLocationContextValue['status']>('idle');
-  const [error, setError] = useState<string | null>(null);
+export const useUserLocation = (): UserLocationContextValue => {
+  const dispatch = useAppDispatch();
+  const location = useAppSelector(selectUserLocation);
+  const status = useAppSelector(selectUserLocationStatus);
+  const error = useAppSelector(selectUserLocationError);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setStatus('error');
-      setError('Geolocation is not supported in this browser.');
+      dispatch(
+        locationRequestFailed({
+          status: 'error',
+          error: 'Geolocation is not supported in this browser.',
+        })
+      );
       return;
     }
-    setStatus('loading');
+
+    dispatch(locationRequestStarted());
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: position.timestamp,
-        });
-        setStatus('granted');
-        setError(null);
+        dispatch(
+          locationRequestSucceeded({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: position.timestamp,
+          })
+        );
       },
       (err) => {
-        setStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
-        setError(err.message);
+        dispatch(
+          locationRequestFailed({
+            status: err.code === err.PERMISSION_DENIED ? 'denied' : 'error',
+            error: err.message,
+          })
+        );
       },
       {
         enableHighAccuracy: true,
@@ -63,62 +68,11 @@ export default function UserLocationProvider({ children }: UserLocationProviderP
         maximumAge: 60000,
       }
     );
-  }, []);
+  }, [dispatch]);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      requestLocation();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [requestLocation]);
+  return { location, status, error, requestLocation };
+};
 
-  useEffect(() => {
-    if (!navigator.permissions?.query) {
-      return;
-    }
-    let isCancelled = false;
-    let permissionStatus: PermissionStatus | null = null;
-    const updateFromPermission = (state: PermissionState) => {
-      if (isCancelled || state !== 'granted') {
-        return;
-      }
-      requestLocation();
-    };
-    navigator.permissions
-      .query({ name: 'geolocation' })
-      .then((result) => {
-        if (isCancelled) {
-          return;
-        }
-        permissionStatus = result;
-        updateFromPermission(result.state);
-        result.onchange = () => updateFromPermission(result.state);
-      })
-      .catch(() => {
-        // Swallow permission API failures; location retries remain manual via requestLocation.
-      });
-
-    return () => {
-      isCancelled = true;
-      if (permissionStatus) {
-        permissionStatus.onchange = null;
-      }
-    };
-  }, [requestLocation]);
-
-  const value = useMemo(
-    () => ({
-      location,
-      status,
-      error,
-      requestLocation,
-    }),
-    [location, status, error, requestLocation]
-  );
-
-  return (
-    <UserLocationContext.Provider value={value}>
-      {children}
-    </UserLocationContext.Provider>
-  );
+export default function UserLocationProvider({ children }: UserLocationProviderProps) {
+  return <>{children}</>;
 }

@@ -63,8 +63,8 @@ const FindCard = ({ find }: FindCardProps) => {
       )}
       <CardContent sx={{ pb: 1.5 }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar sx={{ width: 40, height: 40 }}>
-            <TypeIcon fontSize="small" />
+          <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
+            <TypeIcon fontSize="small" sx={{ color: 'primary.contrastText' }} />
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography

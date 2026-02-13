@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Paper from '@mui/material/Paper';
@@ -19,22 +19,23 @@ const navItems = [
 export default function BottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [findsHref, setFindsHref] = useState('/list?tab=finds');
+  const findsHref = useMemo(() => {
+    if (pathname === '/list') {
+      return searchParams.get('tab') === 'sites' ? '/list?tab=sites' : '/list?tab=finds';
+    }
+    if (typeof window === 'undefined') {
+      return '/list?tab=finds';
+    }
+    const savedTab = window.localStorage.getItem('listTab');
+    return savedTab === 'sites' ? '/list?tab=sites' : '/list?tab=finds';
+  }, [pathname, searchParams]);
 
   useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (pathname === '/list') {
-      if (tabParam === 'sites') {
-        localStorage.setItem('listTab', 'sites');
-        setFindsHref('/list?tab=sites');
-        return;
-      }
-      localStorage.setItem('listTab', 'finds');
-      setFindsHref('/list?tab=finds');
+    if (pathname !== '/list') {
       return;
     }
-    const savedTab = localStorage.getItem('listTab');
-    setFindsHref(savedTab === 'sites' ? '/list?tab=sites' : '/list?tab=finds');
+    const tabParam = searchParams.get('tab');
+    window.localStorage.setItem('listTab', tabParam === 'sites' ? 'sites' : 'finds');
   }, [pathname, searchParams]);
   const current = useMemo(() => {
     const match = navItems.find((item) => item.href === pathname);
@@ -82,14 +83,14 @@ export default function BottomNav() {
         {navItems.map((item) => {
           const href = item.href === '/list' ? findsHref : item.href;
           return (
-          <BottomNavigationAction
-            key={item.href}
-            component={Link}
-            href={href}
-            label={item.label}
-            value={item.href}
-            icon={item.icon}
-          />
+            <BottomNavigationAction
+              key={item.href}
+              component={Link}
+              href={href}
+              label={item.label}
+              value={item.href}
+              icon={item.icon}
+            />
           );
         })}
       </BottomNavigation>

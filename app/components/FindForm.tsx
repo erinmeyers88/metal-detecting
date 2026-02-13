@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -30,6 +30,8 @@ import type { MockFind } from '@/app/lib/mock/find';
 import { useMockData } from './MockDataProvider';
 import SiteForm from './SiteForm';
 import { useUserLocation } from './UserLocationProvider';
+import { useAppSelector } from '@/app/store/hooks';
+import { selectBasemapStyle } from '@/app/store/slices/basemapSlice';
 
 type FindFormProps = {
   initialFind?: MockFind;
@@ -116,6 +118,7 @@ export default function FindForm({
   showActions = true,
 }: FindFormProps) {
   const { location } = useUserLocation();
+  const basemapStyle = useAppSelector(selectBasemapStyle);
   const [title, setTitle] = useState(initialFind?.title ?? '');
   const [description, setDescription] = useState(initialFind?.description ?? '');
   const [type, setType] = useState(initialFind?.type ?? '');
@@ -158,32 +161,24 @@ export default function FindForm({
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
 
   const sitesById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
-
-  useEffect(() => {
-    if (initialFind || latitude || longitude || !location) {
-      return;
-    }
-    setLatitude(location.latitude.toFixed(6));
-    setLongitude(location.longitude.toFixed(6));
-  }, [initialFind, latitude, longitude, location]);
-
-  useEffect(() => {
-    const lng = toNumber(longitude);
-    const lat = toNumber(latitude);
+  const longitudeValue =
+    longitude ||
+    (initialFind || !location ? '' : location.longitude.toFixed(6));
+  const latitudeValue =
+    latitude ||
+    (initialFind || !location ? '' : location.latitude.toFixed(6));
+  const autoMatchedSiteId = useMemo(() => {
+    const lng = toNumber(longitudeValue);
+    const lat = toNumber(latitudeValue);
     if (lng === undefined || lat === undefined) {
-      return;
+      return '';
     }
     const match = sites.find((site) =>
-      site.location.geometry.coordinates.some((ring) =>
-        pointInPolygon([lng, lat], ring)
-      )
+      site.location.geometry.coordinates.some((ring) => pointInPolygon([lng, lat], ring))
     );
-    if (match) {
-      setSiteId(match.id);
-      return;
-    }
-    setSiteId('__new__');
-  }, [latitude, longitude, sites]);
+    return match?.id ?? '__new__';
+  }, [latitudeValue, longitudeValue, sites]);
+  const selectedSiteId = siteId || autoMatchedSiteId;
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -192,10 +187,10 @@ export default function FindForm({
       return;
     }
     const parsedDepth = toNumber(depth) as number;
-    const parsedLongitude = toNumber(longitude) as number;
-    const parsedLatitude = toNumber(latitude) as number;
+    const parsedLongitude = toNumber(longitudeValue) as number;
+    const parsedLatitude = toNumber(latitudeValue) as number;
     const parsedFoundTimestamp = new Date(foundDateTime).getTime();
-    const site = sitesById.get(siteId) ?? initialFind?.site;
+    const site = sitesById.get(selectedSiteId) ?? initialFind?.site;
     if (!site) {
       return;
     }
@@ -227,8 +222,8 @@ export default function FindForm({
   };
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  const mapLng = toNumber(longitude) ?? -111.758;
-  const mapLat = toNumber(latitude) ?? 40.299;
+  const mapLng = toNumber(longitudeValue) ?? -111.758;
+  const mapLat = toNumber(latitudeValue) ?? 40.299;
   const actionLabel = submitLabel ?? (initialFind ? 'Save changes' : 'Log find');
   const validationErrors = useMemo<FindFormErrors>(() => {
     const errors: FindFormErrors = {
@@ -242,8 +237,8 @@ export default function FindForm({
       latitude: false,
     };
     const parsedDepth = toNumber(depth);
-    const parsedLongitude = toNumber(longitude);
-    const parsedLatitude = toNumber(latitude);
+    const parsedLongitude = toNumber(longitudeValue);
+    const parsedLatitude = toNumber(latitudeValue);
     const parsedDateTime = foundDateTime ? new Date(foundDateTime).getTime() : Number.NaN;
 
     if (!type.trim()) {
@@ -266,7 +261,7 @@ export default function FindForm({
     ) {
       errors.depth = true;
     }
-    if (!siteId || siteId === '__new__') {
+    if (!selectedSiteId || selectedSiteId === '__new__') {
       errors.siteId = true;
     }
     if (
@@ -289,33 +284,25 @@ export default function FindForm({
     }
 
     return errors;
-  }, [condition, depth, foundDateTime, latitude, longitude, siteId, title, type]);
+  }, [
+    condition,
+    depth,
+    foundDateTime,
+    latitudeValue,
+    longitudeValue,
+    selectedSiteId,
+    title,
+    type,
+  ]);
   const hasValidationErrors = Object.values(validationErrors).some(Boolean);
-  const [viewState, setViewState] = useState({
-    longitude: location?.longitude ?? mapLng,
-    latitude: location?.latitude ?? mapLat,
-    zoom: location ? 16.5 : 13,
-  });
-
-  useEffect(() => {
-    setViewState((prev) => ({
-      ...prev,
-      longitude: mapLng,
-      latitude: mapLat,
-    }));
-  }, [mapLng, mapLat]);
-
-  useEffect(() => {
-    if (!location) {
-      return;
-    }
-    setViewState((prev) => ({
-      ...prev,
-      longitude: location.longitude,
-      latitude: location.latitude,
-      zoom: 16.5,
-    }));
-  }, [location]);
+  const initialMapViewState = useMemo(
+    () => ({
+      longitude: location?.longitude ?? mapLng,
+      latitude: location?.latitude ?? mapLat,
+      zoom: location ? 16.5 : 13,
+    }),
+    [location, mapLat, mapLng]
+  );
 
   return (
     <Box
@@ -354,7 +341,7 @@ export default function FindForm({
                 <Stack direction="row" spacing={1} alignItems="center">
                   {(() => {
                     const TypeIcon = typeIconMap[option as keyof typeof typeIconMap] ?? AutoAwesomeIcon;
-                    return <TypeIcon fontSize="small" />;
+                    return <TypeIcon fontSize="small" sx={{ color: 'primary.main' }} />;
                   })()}
                   <span>{option}</span>
                 </Stack>
@@ -514,7 +501,7 @@ export default function FindForm({
           <Select
             labelId="find-site-label"
             label="Site"
-            value={siteId}
+            value={selectedSiteId}
             onChange={(event) => setSiteId(event.target.value)}
           >
             <MenuItem value="">
@@ -541,16 +528,15 @@ export default function FindForm({
           fullWidth
           maxWidth="sm"
           scroll="paper"
-          PaperProps={{ sx: { maxHeight: 'calc(100dvh - 32px)' } }}
         >
           <DialogTitle>Add new site</DialogTitle>
-          <DialogContent sx={{ p: 0, height: 'calc(100dvh - 96px)', overflow: 'hidden' }}>
+          <DialogContent sx={{ p: 0 }}>
             <SiteForm
               center={
-                toNumber(latitude) !== undefined && toNumber(longitude) !== undefined
+                toNumber(latitudeValue) !== undefined && toNumber(longitudeValue) !== undefined
                   ? {
-                      lat: toNumber(latitude) as number,
-                      lng: toNumber(longitude) as number,
+                      lat: toNumber(latitudeValue) as number,
+                      lng: toNumber(longitudeValue) as number,
                     }
                   : undefined
               }
@@ -568,7 +554,7 @@ export default function FindForm({
           <TextField
             label="Longitude"
             type="number"
-            value={longitude}
+            value={longitudeValue}
             onChange={(event) => setLongitude(event.target.value)}
             required
             error={hasTriedSubmit && validationErrors.longitude}
@@ -577,7 +563,7 @@ export default function FindForm({
           <TextField
             label="Latitude"
             type="number"
-            value={latitude}
+            value={latitudeValue}
             onChange={(event) => setLatitude(event.target.value)}
             required
             error={hasTriedSubmit && validationErrors.latitude}
@@ -587,13 +573,13 @@ export default function FindForm({
         <Box sx={{ height: 280, borderRadius: 2, overflow: 'hidden' }}>
           <MapView
             mapboxAccessToken={mapboxToken}
-            viewState={viewState}
-            onMove={(event) => setViewState(event.viewState)}
+            key={`${initialMapViewState.longitude}:${initialMapViewState.latitude}`}
+            initialViewState={initialMapViewState}
             onClick={(event: MapLayerMouseEvent) => {
               setLongitude(event.lngLat.lng.toFixed(6));
               setLatitude(event.lngLat.lat.toFixed(6));
             }}
-            mapStyle="mapbox://styles/mapbox/streets-v9"
+            mapStyle={basemapStyle}
             style={{ width: '100%', height: '100%' }}
           >
             {location && (

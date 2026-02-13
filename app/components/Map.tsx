@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Map as MapView, Marker, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapLayerMouseEvent } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,6 +15,8 @@ import trashSvg from './icons/delete_24dp_1F1F1F.svg?raw';
 import FindCard from './FindCard';
 import SiteCard from './SiteCard';
 import { useUserLocation } from './UserLocationProvider';
+import { useAppSelector } from '@/app/store/hooks';
+import { selectBasemapStyle } from '@/app/store/slices/basemapSlice';
 
 type MapProps = {
   finds: MockFind[];
@@ -23,8 +25,8 @@ type MapProps = {
 
 const DARK_BROWN = '#5b3a1e';
 const LIGHT_BROWN = '#d2a06f';
-const SITE_FILL = '#9ac7b2';
-const SITE_STROKE = '#2b5d4b';
+const SITE_FILL = '#1976d2';
+const SITE_STROKE = '#1976d2';
 
 const svgToDataUri = (svg: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -48,11 +50,18 @@ const addSvgIcon = (map: MapboxMap, id: string, svg: string) => {
   image.src = svgToDataUri(svg);
 };
 
+const registerMapDecorations = (map: MapboxMap) => {
+  addSvgIcon(map, 'finds-coin', iconSvgs.Coin);
+  addSvgIcon(map, 'finds-relic', iconSvgs.Relic);
+  addSvgIcon(map, 'finds-trash', iconSvgs.Trash);
+};
+
 export default function MainMap({ finds, sites = [] }: MapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [selectedFind, setSelectedFind] = useState<MockFind | null>(null);
   const [selectedSite, setSelectedSite] = useState<MockSite | null>(null);
   const { location } = useUserLocation();
+  const basemapStyle = useAppSelector(selectBasemapStyle);
 
   const { minDepth, maxDepth } = useMemo(() => {
     if (!finds.length) {
@@ -152,7 +161,7 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
       source: 'sites',
       paint: {
         'fill-color': SITE_FILL,
-        'fill-opacity': 0.35,
+        'fill-opacity': 0,
       },
     }),
     []
@@ -165,7 +174,7 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
       source: 'sites',
       paint: {
         'line-color': SITE_STROKE,
-        'line-width': 2,
+        'line-width': 3,
       },
     }),
     []
@@ -182,8 +191,26 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
         selectedSite ? String(selectedSite.id) : '__none__',
       ],
       paint: {
-        'fill-color': '#f2c277',
-        'fill-opacity': 0.45,
+        'fill-color': SITE_FILL,
+        'fill-opacity': 0.18,
+      },
+    }),
+    [selectedSite]
+  );
+
+  const sitesSelectedOutlineLayer = useMemo(
+    () => ({
+      id: 'sites-selected-outline',
+      type: 'line',
+      source: 'sites',
+      filter: [
+        '==',
+        ['get', 'id'],
+        selectedSite ? String(selectedSite.id) : '__none__',
+      ],
+      paint: {
+        'line-color': '#e65100',
+        'line-width': 3,
       },
     }),
     [selectedSite]
@@ -201,9 +228,9 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
       ],
       paint: {
         'circle-radius': 18,
-        'circle-color': '#f2c277',
-        'circle-opacity': 0.5,
-        'circle-stroke-color': '#8a5a2b',
+        'circle-color': SITE_FILL,
+        'circle-opacity': 0.35,
+        'circle-stroke-color': '#e65100',
         'circle-stroke-width': 2,
       },
     }),
@@ -236,22 +263,14 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
 
   const [fallbackLng, fallbackLat] =
     finds[0]?.location.geometry.coordinates ?? [-111.758, 40.299];
-  const [viewState, setViewState] = useState(() => ({
-    longitude: location?.longitude ?? fallbackLng,
-    latitude: location?.latitude ?? fallbackLat,
-    zoom: 18,
-  }));
-
-  useEffect(() => {
-    if (!location) {
-      return;
-    }
-    setViewState((prev) => ({
-      ...prev,
-      longitude: location.longitude,
-      latitude: location.latitude,
-    }));
-  }, [location]);
+  const initialViewState = useMemo(
+    () => ({
+      longitude: location?.longitude ?? fallbackLng,
+      latitude: location?.latitude ?? fallbackLat,
+      zoom: 18,
+    }),
+    [fallbackLat, fallbackLng, location]
+  );
 
   const siteFindCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -276,9 +295,7 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
       <MapView
         reuseMaps
         onLoad={(event) => {
-          addSvgIcon(event.target, 'finds-coin', iconSvgs.Coin);
-          addSvgIcon(event.target, 'finds-relic', iconSvgs.Relic);
-          addSvgIcon(event.target, 'finds-trash', iconSvgs.Trash);
+          registerMapDecorations(event.target);
           if (!(event.target as MapboxMap & { __hasAttribution?: boolean }).__hasAttribution) {
             event.target.addControl(
               new mapboxgl.AttributionControl({ compact: true }),
@@ -287,15 +304,18 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
             (event.target as MapboxMap & { __hasAttribution?: boolean }).__hasAttribution = true;
           }
         }}
+        onStyleData={(event) => {
+          registerMapDecorations(event.target);
+        }}
         onClick={handleMapClick}
         interactiveLayerIds={['finds-icons', 'sites-fill', 'sites-selected']}
         mapboxAccessToken={mapboxToken}
         attributionControl={false}
         logoPosition="top-left"
-        viewState={viewState}
-        onMove={(event) => setViewState(event.viewState)}
+        key={`${initialViewState.longitude}:${initialViewState.latitude}`}
+        initialViewState={initialViewState}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/streets-v9"
+        mapStyle={basemapStyle}
       >
         {location && (
           <Marker longitude={location.longitude} latitude={location.latitude} anchor="bottom">
@@ -312,9 +332,10 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
           </Marker>
         )}
         <Source id="sites" type="geojson" data={sitesFeatureCollection}>
-          <Layer {...sitesSelectedLayer} />
           <Layer {...sitesFillLayer} />
+          <Layer {...sitesSelectedLayer} />
           <Layer {...sitesOutlineLayer} />
+          <Layer {...sitesSelectedOutlineLayer} />
         </Source>
         <Source id="finds" type="geojson" data={featureCollection}>
           <Layer {...selectedLayer} />
@@ -323,50 +344,58 @@ export default function MainMap({ finds, sites = [] }: MapProps) {
         <Box
           sx={{
             position: 'fixed',
-          left: 16,
-          transform: 'none',
-          bottom: { xs: 96, sm: 96 },
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            px: 1.5,
-            py: 1,
-            boxShadow: 2,
+            left: 16,
+            bottom: { xs: 96, sm: 96 },
             zIndex: 2,
-            width: 'fit-content',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 1,
           }}
         >
           <Box
             sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'text.secondary',
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              px: 1.5,
+              py: 1,
+              boxShadow: 2,
+              width: 'fit-content',
             }}
           >
-            Depth
-          </Box>
-          <Box sx={{ mt: 0.75, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box
               sx={{
-                width: 10,
-                height: 72,
-                borderRadius: 999,
-                background: `linear-gradient(180deg, ${LIGHT_BROWN}, ${DARK_BROWN})`,
-              }}
-            />
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
                 fontSize: 12,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
                 color: 'text.secondary',
-                lineHeight: 1.2,
               }}
             >
-              <span>{minDepth} in</span>
-              <span style={{ marginTop: 48 }}>{maxDepth} in</span>
+              Depth
+            </Box>
+            <Box sx={{ mt: 0.75, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 10,
+                  height: 72,
+                  borderRadius: 999,
+                  background: `linear-gradient(180deg, ${LIGHT_BROWN}, ${DARK_BROWN})`,
+                }}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  fontSize: 12,
+                  color: 'text.secondary',
+                  lineHeight: 1.2,
+                }}
+              >
+                <span>{minDepth} in</span>
+                <span style={{ marginTop: 48 }}>{maxDepth} in</span>
+              </Box>
             </Box>
           </Box>
         </Box>
