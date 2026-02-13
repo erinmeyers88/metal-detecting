@@ -40,6 +40,17 @@ type FindFormProps = {
   showActions?: boolean;
 };
 
+type FindFormErrors = {
+  type: boolean;
+  foundDateTime: boolean;
+  title: boolean;
+  condition: boolean;
+  depth: boolean;
+  siteId: boolean;
+  longitude: boolean;
+  latitude: boolean;
+};
+
 const materialOptions = [
   { name: 'Iron', color: '#2f3339', colorAlt: '#5f6b75' },
   { name: 'Copper', color: '#c96a2b', colorAlt: '#8f3f1c' },
@@ -134,7 +145,6 @@ export default function FindForm({
   const [siteId, setSiteId] = useState(initialFind?.site?.id ?? '');
   const [siteDialogOpen, setSiteDialogOpen] = useState(false);
   const { sites, setSites } = useMockData();
-  const siteFormId = 'new-site-form';
   const [longitude, setLongitude] = useState(
     initialFind?.location?.geometry?.coordinates?.[0] !== undefined
       ? String(initialFind.location.geometry.coordinates[0])
@@ -145,6 +155,7 @@ export default function FindForm({
       ? String(initialFind.location.geometry.coordinates[1])
       : ''
   );
+  const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
 
   const sitesById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
 
@@ -176,16 +187,27 @@ export default function FindForm({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const site = sitesById.get(siteId);
+    setHasTriedSubmit(true);
+    if (hasValidationErrors) {
+      return;
+    }
+    const parsedDepth = toNumber(depth) as number;
+    const parsedLongitude = toNumber(longitude) as number;
+    const parsedLatitude = toNumber(latitude) as number;
+    const parsedFoundTimestamp = new Date(foundDateTime).getTime();
+    const site = sitesById.get(siteId) ?? initialFind?.site;
+    if (!site) {
+      return;
+    }
     const payload: Partial<MockFind> = {
       id: initialFind?.id,
       title: title.trim(),
       description: description.trim(),
       type,
       materials: materialOptions.filter((material) => materialNames.includes(material.name)),
-      depth: toNumber(depth) ?? 0,
-      foundTimestamp: foundDateTime ? new Date(foundDateTime).getTime() : 0,
-      site: site ?? initialFind?.site,
+      depth: parsedDepth,
+      foundTimestamp: parsedFoundTimestamp,
+      site,
       photoUrl: initialFind?.photoUrl,
       photoFile,
       size: toNumber(size) ?? 0,
@@ -197,7 +219,7 @@ export default function FindForm({
         properties: {},
         geometry: {
           type: 'Point',
-          coordinates: [toNumber(longitude) ?? 0, toNumber(latitude) ?? 0],
+          coordinates: [parsedLongitude, parsedLatitude],
         },
       },
     };
@@ -207,6 +229,68 @@ export default function FindForm({
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapLng = toNumber(longitude) ?? -111.758;
   const mapLat = toNumber(latitude) ?? 40.299;
+  const actionLabel = submitLabel ?? (initialFind ? 'Save changes' : 'Log find');
+  const validationErrors = useMemo<FindFormErrors>(() => {
+    const errors: FindFormErrors = {
+      type: false,
+      foundDateTime: false,
+      title: false,
+      condition: false,
+      depth: false,
+      siteId: false,
+      longitude: false,
+      latitude: false,
+    };
+    const parsedDepth = toNumber(depth);
+    const parsedLongitude = toNumber(longitude);
+    const parsedLatitude = toNumber(latitude);
+    const parsedDateTime = foundDateTime ? new Date(foundDateTime).getTime() : Number.NaN;
+
+    if (!type.trim()) {
+      errors.type = true;
+    }
+    if (!foundDateTime.trim() || Number.isNaN(parsedDateTime)) {
+      errors.foundDateTime = true;
+    }
+    if (!title.trim()) {
+      errors.title = true;
+    }
+    if (!condition.trim()) {
+      errors.condition = true;
+    }
+    if (
+      parsedDepth === undefined ||
+      Number.isNaN(parsedDepth) ||
+      !Number.isFinite(parsedDepth) ||
+      parsedDepth < 0
+    ) {
+      errors.depth = true;
+    }
+    if (!siteId || siteId === '__new__') {
+      errors.siteId = true;
+    }
+    if (
+      parsedLongitude === undefined ||
+      Number.isNaN(parsedLongitude) ||
+      !Number.isFinite(parsedLongitude) ||
+      parsedLongitude < -180 ||
+      parsedLongitude > 180
+    ) {
+      errors.longitude = true;
+    }
+    if (
+      parsedLatitude === undefined ||
+      Number.isNaN(parsedLatitude) ||
+      !Number.isFinite(parsedLatitude) ||
+      parsedLatitude < -90 ||
+      parsedLatitude > 90
+    ) {
+      errors.latitude = true;
+    }
+
+    return errors;
+  }, [condition, depth, foundDateTime, latitude, longitude, siteId, title, type]);
+  const hasValidationErrors = Object.values(validationErrors).some(Boolean);
   const [viewState, setViewState] = useState({
     longitude: location?.longitude ?? mapLng,
     latitude: location?.latitude ?? mapLat,
@@ -237,14 +321,24 @@ export default function FindForm({
     <Box
       component="form"
       id={formId}
+      noValidate
       onSubmit={handleSubmit}
-      sx={{ maxWidth: 720, mx: 'auto' }}
+      sx={{
+        maxWidth: 720,
+        mx: 'auto',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        maxHeight: '100%',
+      }}
     >
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {initialFind ? 'Edit Find' : 'Add Find'}
-      </Typography>
-      <Stack spacing={2}>
-        <FormControl fullWidth>
+      <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          {initialFind ? 'Edit Find' : 'Log Find'}
+        </Typography>
+        <Stack spacing={2}>
+        <FormControl fullWidth required error={hasTriedSubmit && validationErrors.type}>
           <InputLabel id="find-type-label">Type</InputLabel>
           <Select
             labelId="find-type-label"
@@ -274,9 +368,11 @@ export default function FindForm({
           value={foundDateTime}
           onChange={(event) => setFoundDateTime(event.target.value)}
           InputLabelProps={{ shrink: true }}
+          required
+          error={hasTriedSubmit && validationErrors.foundDateTime}
           fullWidth
         />
-        <Button variant="outlined" component="label">
+        <Button variant="outlined" component="label" type="button">
           {photoFile ? 'Photo selected' : 'Add photo'}
           <input
             hidden
@@ -291,6 +387,8 @@ export default function FindForm({
           label="Title"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
+          required
+          error={hasTriedSubmit && validationErrors.title}
           fullWidth
         />
         <TextField
@@ -301,7 +399,11 @@ export default function FindForm({
           multiline
           minRows={3}
         />
-        <FormControl fullWidth>
+        <FormControl
+          fullWidth
+          required
+          error={hasTriedSubmit && validationErrors.condition}
+        >
           <InputLabel id="find-condition-label">Condition</InputLabel>
           <Select
             labelId="find-condition-label"
@@ -376,6 +478,8 @@ export default function FindForm({
             value={depth}
             onChange={(event) => setDepth(event.target.value)}
             inputProps={{ min: 0, step: 0.1 }}
+            required
+            error={hasTriedSubmit && validationErrors.depth}
             fullWidth
           />
         </Stack>
@@ -405,7 +509,7 @@ export default function FindForm({
             fullWidth
           />
         </Stack>
-        <FormControl fullWidth>
+        <FormControl fullWidth required error={hasTriedSubmit && validationErrors.siteId}>
           <InputLabel id="find-site-label">Site</InputLabel>
           <Select
             labelId="find-site-label"
@@ -436,12 +540,12 @@ export default function FindForm({
           onClose={() => setSiteDialogOpen(false)}
           fullWidth
           maxWidth="sm"
+          scroll="paper"
+          PaperProps={{ sx: { maxHeight: 'calc(100dvh - 32px)' } }}
         >
           <DialogTitle>Add new site</DialogTitle>
-          <DialogContent sx={{ pt: 1 }}>
+          <DialogContent sx={{ p: 0, height: 'calc(100dvh - 96px)', overflow: 'hidden' }}>
             <SiteForm
-              formId={siteFormId}
-              showActions={false}
               center={
                 toNumber(latitude) !== undefined && toNumber(longitude) !== undefined
                   ? {
@@ -456,15 +560,8 @@ export default function FindForm({
                 setSiteId(newSite.id);
                 setSiteDialogOpen(false);
               }}
+              onCancel={() => setSiteDialogOpen(false)}
             />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-              <Button variant="text" onClick={() => setSiteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="contained" type="submit" form={siteFormId}>
-                Save site
-              </Button>
-            </Box>
           </DialogContent>
         </Dialog>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -473,6 +570,8 @@ export default function FindForm({
             type="number"
             value={longitude}
             onChange={(event) => setLongitude(event.target.value)}
+            required
+            error={hasTriedSubmit && validationErrors.longitude}
             fullWidth
           />
           <TextField
@@ -480,6 +579,8 @@ export default function FindForm({
             type="number"
             value={latitude}
             onChange={(event) => setLatitude(event.target.value)}
+            required
+            error={hasTriedSubmit && validationErrors.latitude}
             fullWidth
           />
         </Stack>
@@ -528,19 +629,30 @@ export default function FindForm({
             </Marker>
           </MapView>
         </Box>
-        {showActions && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {onCancel && (
-              <Button variant="text" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-            <Button variant="contained" type="submit">
-              {submitLabel ?? (initialFind ? 'Save changes' : 'Create find')}
+        </Stack>
+      </Box>
+      {showActions && (
+        <Box
+          sx={{
+            borderTop: 1,
+            borderColor: 'divider',
+            p: 2,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 1,
+            bgcolor: 'background.paper',
+          }}
+        >
+          {onCancel && (
+            <Button variant="text" onClick={onCancel}>
+              Cancel
             </Button>
-          </Box>
-        )}
-      </Stack>
+          )}
+          <Button variant="contained" type="submit">
+            {actionLabel}
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }

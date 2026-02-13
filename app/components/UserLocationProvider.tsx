@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 type UserLocation = {
   latitude: number;
@@ -13,6 +13,7 @@ type UserLocationContextValue = {
   location: UserLocation | null;
   status: 'idle' | 'loading' | 'granted' | 'denied' | 'error';
   error: string | null;
+  requestLocation: () => void;
 };
 
 const UserLocationContext = createContext<UserLocationContextValue | null>(null);
@@ -34,7 +35,7 @@ export default function UserLocationProvider({ children }: UserLocationProviderP
   const [status, setStatus] = useState<UserLocationContextValue['status']>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setStatus('error');
       setError('Geolocation is not supported in this browser.');
@@ -64,13 +65,55 @@ export default function UserLocationProvider({ children }: UserLocationProviderP
     );
   }, []);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      requestLocation();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [requestLocation]);
+
+  useEffect(() => {
+    if (!navigator.permissions?.query) {
+      return;
+    }
+    let isCancelled = false;
+    let permissionStatus: PermissionStatus | null = null;
+    const updateFromPermission = (state: PermissionState) => {
+      if (isCancelled || state !== 'granted') {
+        return;
+      }
+      requestLocation();
+    };
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then((result) => {
+        if (isCancelled) {
+          return;
+        }
+        permissionStatus = result;
+        updateFromPermission(result.state);
+        result.onchange = () => updateFromPermission(result.state);
+      })
+      .catch(() => {
+        // Swallow permission API failures; location retries remain manual via requestLocation.
+      });
+
+    return () => {
+      isCancelled = true;
+      if (permissionStatus) {
+        permissionStatus.onchange = null;
+      }
+    };
+  }, [requestLocation]);
+
   const value = useMemo(
     () => ({
       location,
       status,
       error,
+      requestLocation,
     }),
-    [location, status, error]
+    [location, status, error, requestLocation]
   );
 
   return (

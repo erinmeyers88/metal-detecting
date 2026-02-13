@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { usePathname } from 'next/navigation';
 import MainContent from './MainContent';
 import BottomNav from './BottomNav';
+import LocationRequiredDialog from './LocationRequiredDialog';
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -29,6 +30,7 @@ export default function AppShell({ children }: AppShellProps) {
         {children}
       </MainContent>
       <BottomNav />
+      <LocationRequiredDialog />
     </Box>
   );
 }

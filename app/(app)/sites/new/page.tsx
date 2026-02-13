@@ -2,8 +2,6 @@
 
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import { useRouter } from 'next/navigation';
 import SiteForm from '@/app/components/SiteForm';
 import { useMockData } from '@/app/components/MockDataProvider';
@@ -11,54 +9,25 @@ import { useMockData } from '@/app/components/MockDataProvider';
 export default function NewSitePage() {
   const router = useRouter();
   const { setSites } = useMockData();
-  const formId = 'new-site-page-form';
 
   return (
     <Dialog
       open
       onClose={() => router.back()}
-      fullScreen
       fullWidth
-      maxWidth={false}
-      scroll="body"
-      sx={{
-        '& .MuiDialog-container': { alignItems: 'stretch' },
-        '& .MuiPaper-root': { width: '100%', height: '100%' },
-      }}
+      maxWidth="md"
+      scroll="paper"
+      PaperProps={{ sx: { maxHeight: 'calc(100dvh - 32px)' } }}
     >
-      <DialogContent sx={{ p: 0, height: '100%' }}>
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ flex: 1, overflow: 'auto', px: 2, pt: 2, pb: 3 }}>
-            <SiteForm
-              formId={formId}
-              showActions={false}
-              onSubmit={(payload) => {
-                console.log('Create site payload', payload);
-                setSites((prev) => [...prev, payload]);
-                router.back();
-              }}
-            />
-          </Box>
-          <Box
-            sx={{
-              borderTop: 1,
-              borderColor: 'divider',
-              px: 2,
-              py: 1.5,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 1,
-              bgcolor: 'background.paper',
-            }}
-          >
-            <Button variant="text" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button variant="contained" type="submit" form={formId}>
-              Save site
-            </Button>
-          </Box>
-        </Box>
+      <DialogContent sx={{ p: 0, height: 'calc(100dvh - 32px)', overflow: 'hidden' }}>
+        <SiteForm
+          onCancel={() => router.back()}
+          onSubmit={(payload) => {
+            console.log('Create site payload', payload);
+            setSites((prev) => [...prev, payload]);
+            router.back();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
